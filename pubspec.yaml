@@ -1,5 +1,5 @@
-name: first_flutter_app
-description: "A new Flutter project."
+name: lightseed
+description: "Mindfulness app. Seeding a spark of light on a daily basis to its users"
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 

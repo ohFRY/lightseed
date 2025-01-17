@@ -1,5 +1,5 @@
-import 'package:first_flutter_app/model/affirmations_service.dart';
 import 'package:flutter/material.dart';
+import '../model/affirmations_service.dart';
 
 class MyAppState extends ChangeNotifier {
   final AffirmationsService serviceAffirmations = AffirmationsService();
