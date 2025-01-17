@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:first_flutter_app/logic/my_favourites_page_state.dart';
-import 'package:first_flutter_app/ui/elements/custom_app_bar.dart';
+import '../../logic/my_favourites_page_state.dart';
+import '../elements/custom_app_bar.dart';
 
 class MyFavouritesPage extends StatelessWidget {
   @override

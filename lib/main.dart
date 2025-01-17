@@ -1,10 +1,10 @@
-import 'package:first_flutter_app/ui/pages/my_favourites_page.dart';
-import 'package:first_flutter_app/ui/pages/generator_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'logic/my_generator_page_state.dart';
 import 'logic/my_favourites_page_state.dart';
 import 'ui/elements/navigation_rail.dart';
+import 'ui/pages/generator_page.dart';
+import 'ui/pages/my_favourites_page.dart';
 
 void main() {
   runApp(MyApp());
