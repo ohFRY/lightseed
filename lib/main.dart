@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'logic/my_generator_page_state.dart';
-import 'logic/my_favourites_page_state.dart';
-import 'ui/elements/navigation_rail.dart';
-import 'ui/elements/navigation_bar.dart';
-import 'ui/pages/generator_page.dart';
-import 'ui/pages/my_favourites_page.dart';
+import 'src/logic/my_app_state.dart';
+import 'src/logic/my_favourites_page_state.dart';
+import 'src/ui/elements/navigation_rail.dart';
+import 'src/ui/elements/navigation_bar.dart';
+import 'src/ui/pages/generator_page.dart';
+import 'src/ui/pages/my_favourites_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -45,13 +45,11 @@ class _MyHomePageState extends State<MyHomePage> {
     switch (selectedIndex) {
       case 0:
         page = GeneratorPage();
-        break;
       case 1:
         page = ChangeNotifierProvider(
           create: (context) => MyFavouritesPageState(context.read<MyAppState>()),
           child: MyFavouritesPage(),
         );
-        break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }

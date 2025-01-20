@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../router.dart';
+import '../../shared/router.dart';
 
 class CustomNavigationBar extends StatelessWidget {
   final int selectedIndex;

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../config.dart'; // Import the configuration file
+import '../../config.dart'; // Import the configuration file
 
 class AffirmationsService {
 
