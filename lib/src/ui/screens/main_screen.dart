@@ -4,15 +4,15 @@ import '../../logic/my_app_state.dart';
 import '../../logic/my_favourites_page_state.dart';
 import '../elements/navigation_rail.dart';
 import '../elements/navigation_bar.dart';
-import 'generator_page.dart';
-import 'my_favourites_page.dart';
+import '../pages/generator_page.dart';
+import '../pages/my_favourites_page.dart';
 
-class MyHomePage extends StatefulWidget {
+class MyMainScreen extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyMainScreen> createState() => _MyMainScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyMainScreenState extends State<MyMainScreen> {
   var selectedIndex = 0;
 
   @override

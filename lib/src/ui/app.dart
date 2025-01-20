@@ -3,7 +3,7 @@ import 'package:lightseed/src/logic/my_app_state.dart';
 import 'package:lightseed/src/ui/theme/theme.dart';
 import 'package:lightseed/src/ui/theme/util.dart';
 import 'package:provider/provider.dart';
-import 'pages/home_page.dart';
+import 'screens/main_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: "LightSeed",
         theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-        home: MyHomePage(),
+        home: MyMainScreen(),
       ),
     );
   }
