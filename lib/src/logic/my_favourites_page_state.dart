@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'my_generator_page_state.dart';
+import 'my_app_state.dart';
 
 class MyFavouritesPageState extends ChangeNotifier {
   final MyAppState appState;

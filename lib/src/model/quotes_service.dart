@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config.dart'; // Import the configuration file
+import '../../config.dart'; // Import the configuration file
 
 class QuotesService {
   

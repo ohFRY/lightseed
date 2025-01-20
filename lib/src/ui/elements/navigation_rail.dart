@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../router.dart';
+import '../../shared/router.dart';
 
 class CustomNavigationRail extends StatelessWidget {
   final int selectedIndex;
