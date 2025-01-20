@@ -16,8 +16,9 @@ class CustomNavigationRail extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: NavigationRail(
-        backgroundColor: Colors.white,
         extended: extended,
+        // Display labels under icons on tablets, hide on desktop (otherwise exception is raised)
+        labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all, 
         destinations: AppRoutes.destinations.map((destination) {
           return NavigationRailDestination(
             icon: destination.icon,

@@ -6,6 +6,8 @@ import 'src/ui/elements/navigation_rail.dart';
 import 'src/ui/elements/navigation_bar.dart';
 import 'src/ui/pages/generator_page.dart';
 import 'src/ui/pages/my_favourites_page.dart';
+import 'src/ui/theme/theme.dart';
+import 'src/ui/theme/util.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,15 +18,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = View.of(context).platformDispatcher.platformBrightness;
+    
+    // Use with Google Fonts package to use downloadable fonts
+    TextTheme textTheme = createTextTheme(context, "Lato", "Noto Serif");
+    // Create theme from MaterialTheme class
+    MaterialTheme theme = MaterialTheme(textTheme);
+
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: "Word Pair Generator",
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
-        ),
+        title: "LightSeed",
+        theme: brightness == Brightness.light ? theme.light() : theme.dark(),
         home: MyHomePage(),
       ),
     );

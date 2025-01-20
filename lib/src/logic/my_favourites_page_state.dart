@@ -19,8 +19,4 @@ class MyFavouritesPageState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleNavigationRailVisibility() {
-    isNavigationRailVisible = !isNavigationRailVisible;
-    notifyListeners();
-  }
 }
