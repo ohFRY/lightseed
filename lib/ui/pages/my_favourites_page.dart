@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/my_favourites_page_state.dart';
-import '../elements/custom_app_bar.dart';
 
 class MyFavouritesPage extends StatelessWidget {
   @override
@@ -9,17 +8,6 @@ class MyFavouritesPage extends StatelessWidget {
     var appState = context.watch<MyFavouritesPageState>();
 
     return Scaffold(
-      appBar: CustomAppBar(
-        leftIcon: Icons.menu,
-        title: 'Favorites',
-        rightIcon: Icons.delete,
-        onLeftIconPressed: () {
-          Navigator.pop(context);
-        },
-        onRightIconPressed: () {
-          appState.clearFavorites();
-        },
-      ),
       body: Center(
         child: appState.favorites.isEmpty
             ? Text('No favorites yet.')

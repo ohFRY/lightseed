@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../logic/my_generator_page_state.dart';
 import '../elements/big_card.dart';
-import '../elements/custom_app_bar.dart';
 
 class GeneratorPage extends StatelessWidget {
 
@@ -19,17 +18,6 @@ class GeneratorPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: CustomAppBar(
-        leftIcon: Icons.menu,
-        title: 'Generator',
-        rightIcon: Icons.refresh,
-        onLeftIconPressed: () {
-          // Handle left icon press for GeneratorPage
-        },
-        onRightIconPressed: () {
-          // Handle right icon press for GeneratorPage
-        },
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
