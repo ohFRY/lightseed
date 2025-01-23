@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/ui/screens/splash_screen.dart';
+import 'package:lightseed/src/ui/app.dart';
 
 
 void main() {
@@ -9,9 +10,6 @@ void main() {
 class MyAppWithSplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
-    );
+    return buildMaterialApp(context, SplashScreen());
   }
 }

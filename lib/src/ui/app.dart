@@ -10,21 +10,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = View.of(context).platformDispatcher.platformBrightness;
-
-    // Use with Google Fonts package to use downloadable fonts
-    TextTheme textTheme = createTextTheme(context, "Lato", "Noto Serif");
-    // Create theme from MaterialTheme class
-    MaterialTheme theme = MaterialTheme(textTheme);
-
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "LightSeed",
-        theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-        home: MyMainScreen(),
-      ),
+      child: buildMaterialApp(context, MyMainScreen()),
     );
   }
+}
+
+MaterialApp buildMaterialApp(BuildContext context, Widget home) {
+  final brightness = View.of(context).platformDispatcher.platformBrightness;
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: "LightSeed",
+    theme: _buildThemeData(context, brightness),
+    home: home,
+  );
+}
+
+ThemeData _buildThemeData(BuildContext context, Brightness brightness) {
+  final textTheme = createTextTheme(context, "Lato", "Noto Serif");
+  final theme = MaterialTheme(textTheme);
+  return brightness == Brightness.light ? theme.light() : theme.dark();
 }

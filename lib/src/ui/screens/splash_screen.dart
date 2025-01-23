@@ -20,7 +20,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   _initializeApp() async {
     // Simulate some background initialization work
-    await Future.delayed(Duration(seconds: 3), () {});
+    await Future.delayed(Duration(seconds: 6), () {});
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -55,7 +55,6 @@ class SplashScreenState extends State<SplashScreen> {
         } else {
           final quote = snapshot.data!;
           return Scaffold(
-            backgroundColor: Color(0xff392e2c),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -68,7 +67,6 @@ class SplashScreenState extends State<SplashScreen> {
                       style: const TextStyle(
                         fontSize: 24,
                         fontStyle: FontStyle.italic,
-                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -78,7 +76,6 @@ class SplashScreenState extends State<SplashScreen> {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 20),
