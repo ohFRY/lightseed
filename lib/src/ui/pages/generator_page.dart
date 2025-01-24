@@ -9,7 +9,7 @@ class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    Affirmation? affirmation = appState.getCurrentAffirmation();
+    Affirmation affirmation = appState.getCurrentAffirmation();
 
     IconData icon;
     if (appState.favorites.contains(affirmation)) {
@@ -25,7 +25,7 @@ class GeneratorPage extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: BigCard(text: affirmation?.content ?? ''),
+              child: BigCard(text: affirmation.content),
             ),
             SizedBox(height: 10),
             Row(

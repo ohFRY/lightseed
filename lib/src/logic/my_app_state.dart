@@ -49,7 +49,7 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Affirmation? getCurrentAffirmation() {
+  Affirmation getCurrentAffirmation() {
     return currentAffirmation;
   }
 }
