@@ -14,7 +14,6 @@ class BigCard extends StatelessWidget {
 
     return Card(
       
-      
       child: Padding(
         padding: const EdgeInsets.all(48.0), 
         child: 
