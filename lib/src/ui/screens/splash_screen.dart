@@ -1,5 +1,5 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lightseed/src/models/quote.dart';
 import 'package:lightseed/src/ui/app.dart';
 import 'package:lottie/lottie.dart';
@@ -21,22 +21,16 @@ class SplashScreenState extends State<SplashScreen> {
 
   _initializeApp() async {
     // Simulate some background initialization work
-    await Future.delayed(Duration(seconds: 6), () {});
+    await Future.delayed(Duration(seconds: 5), () {});
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => MyApp(),
+        transitionDuration: const Duration(milliseconds: 500),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(
-            position: offsetAnimation,
+          return FadeTransition(
+            opacity: animation,
             child: child,
           );
         },
@@ -62,23 +56,33 @@ class SplashScreenState extends State<SplashScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      quote.quote,
-                      textAlign: TextAlign.center,                    
-                      style: GoogleFonts.pacifico(
-                        fontSize: 30,
-                        color: Theme.of(context).colorScheme.primary,
+                    
+                      SizedBox(
+                        height: 150,
+                        child: DefaultTextStyle(
+                          style: Theme.of(context).textTheme.displayMedium!,
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              FadeAnimatedText(quote.quote, duration: const Duration(milliseconds: 2500), textAlign: TextAlign.center),
+                            ],
+                            totalRepeatCount: 1,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      "- ${quote.author}",
-                      textAlign: TextAlign.right,
-                      style: GoogleFonts.lato(
-                        fontSize: 20,
-                        color: Theme.of(context).colorScheme.primary,
+                    
+                      SizedBox(
+                        height: 50,
+                        child: DefaultTextStyle(
+                          style: Theme.of(context).textTheme.bodyMedium!,
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              FadeAnimatedText('', duration: const Duration(milliseconds: 500), textAlign: TextAlign.right),
+                              FadeAnimatedText(quote.author, duration: const Duration(milliseconds: 2000), textAlign: TextAlign.right),
+                            ],
+                            totalRepeatCount: 1,
+                          ),
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: 300,
