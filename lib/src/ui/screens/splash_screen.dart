@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lightseed/src/shared/quote.dart';
+import 'package:lightseed/src/models/quote.dart';
 import 'package:lightseed/src/ui/app.dart';
 import 'package:lottie/lottie.dart';
 

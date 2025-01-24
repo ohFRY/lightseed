@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config.dart'; // Import the configuration file
 
+/*
+Service connecting to a Google Sheets API endpoint to fetch all quotes or a specific affirmation by ID.
+*/
 class QuotesService {
   
   // Fetch all quotes

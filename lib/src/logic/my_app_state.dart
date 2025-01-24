@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/models/affirmation.dart';
 import '../services/affirmations_service.dart';
 
 class MyAppState extends ChangeNotifier {
   final AffirmationsService serviceAffirmations = AffirmationsService();
-  List<String> affirmations = [];
+  List<Affirmation> affirmations = [];
   int currentIndex = 0;
-  String currentAffirmation = "";
+  late Affirmation currentAffirmation;
 
   MyAppState() {
     fetchAllAffirmations();
@@ -14,7 +15,7 @@ class MyAppState extends ChangeNotifier {
   Future<void> fetchAllAffirmations() async {
     try {
       final data = await serviceAffirmations.fetchAllAffirmations();
-      affirmations = data.map((item) => item['content'] as String).toList();
+      affirmations = data;
       if (affirmations.isNotEmpty) {
         currentAffirmation = affirmations[currentIndex];
       }
@@ -32,7 +33,7 @@ class MyAppState extends ChangeNotifier {
     }
   }
 
-  var favorites = <String>[];
+  var favorites = <Affirmation>[];
 
   Future<void> toggleFavorite() async {
     if (favorites.contains(currentAffirmation)) {
@@ -43,12 +44,12 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeFavorite(String text) {
+  void removeFavorite(Affirmation text) {
     favorites.remove(text);
     notifyListeners();
   }
 
-  String getCurrentAffirmation() {
+  Affirmation? getCurrentAffirmation() {
     return currentAffirmation;
   }
 }

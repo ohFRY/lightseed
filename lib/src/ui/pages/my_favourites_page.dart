@@ -21,7 +21,7 @@ class MyFavouritesPage extends StatelessWidget {
                   for (var fav in appState.favorites)
                     ListTile(
                       leading: Icon(Icons.favorite),
-                      title: Text(fav),
+                      title: Text(fav.content),
                       trailing: IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () {
