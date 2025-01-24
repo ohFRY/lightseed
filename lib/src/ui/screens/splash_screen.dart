@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lightseed/src/models/quote.dart';
 import 'package:lightseed/src/ui/app.dart';
 import 'package:lottie/lottie.dart';
@@ -63,19 +64,19 @@ class SplashScreenState extends State<SplashScreen> {
                   children: [
                     Text(
                       quote.quote,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontStyle: FontStyle.italic,
+                      textAlign: TextAlign.center,                    
+                      style: GoogleFonts.pacifico(
+                        fontSize: 30,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       "- ${quote.author}",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.lato(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 20),

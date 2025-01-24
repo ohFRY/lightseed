@@ -15,7 +15,7 @@ class MyFavouritesPage extends StatelessWidget {
                 children: [
                   ListTile(
                     title: Text('Favorites', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Your favorite word pairs'),
+                    subtitle: Text('Your favorite affirmations'),
                     trailing: Text('${appState.favorites.length}'),
                   ),
                   for (var fav in appState.favorites)

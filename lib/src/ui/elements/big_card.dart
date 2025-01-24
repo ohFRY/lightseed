@@ -9,17 +9,18 @@ class BigCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
+    final style = theme.textTheme.headlineMedium!.copyWith(
+      color: theme.colorScheme.onTertiary,
     );
 
     return Card(
-      color: theme.colorScheme.primary,
+      color: theme.colorScheme.tertiary,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(48.0), 
         child: Text(
           text.toString(),
-          style: style ),
+          style: style
+        ),
       ),
     );
   }

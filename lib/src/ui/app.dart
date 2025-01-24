@@ -28,7 +28,7 @@ MaterialApp buildMaterialApp(BuildContext context, Widget home) {
 }
 
 ThemeData _buildThemeData(BuildContext context, Brightness brightness) {
-  final textTheme = createTextTheme(context, "Lato", "Noto Serif");
+  final textTheme = createTextTheme(context, "Lato", "Pacifico");
   final theme = MaterialTheme(textTheme);
   return brightness == Brightness.light ? theme.light() : theme.dark();
 }

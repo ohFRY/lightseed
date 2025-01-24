@@ -6,7 +6,7 @@ class MyAppState extends ChangeNotifier {
   final AffirmationsService serviceAffirmations = AffirmationsService();
   List<Affirmation> affirmations = [];
   int currentIndex = 0;
-  Affirmation currentAffirmation = Affirmation(content: 'Loading...', id: 0);
+  Affirmation currentAffirmation = Affirmation(content: '', id: 0);
 
   MyAppState() {
     fetchAllAffirmations();

@@ -23,10 +23,9 @@ class GeneratorPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Creative affirmation of the day:'),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: BigCard(text: affirmation?.content ?? 'Loading...'),
+              child: BigCard(text: affirmation?.content ?? ''),
             ),
             SizedBox(height: 10),
             Row(

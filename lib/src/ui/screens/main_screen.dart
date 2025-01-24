@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/shared/extensions.dart';
 import 'package:provider/provider.dart';
 import '../../logic/my_app_state.dart';
 import '../../logic/my_favourites_page_state.dart';
@@ -32,7 +33,7 @@ class _MyMainScreenState extends State<MyMainScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 1024) {
+        if (constraints.isDesktop) {
           // Desktop
           return Scaffold(
             body: Row(
@@ -55,7 +56,7 @@ class _MyMainScreenState extends State<MyMainScreen> {
               ],
             ),
           );
-        } else if (constraints.maxWidth >= 600) {
+        } else if (constraints.isTablet) {
           // Tablet
           return Scaffold(
             body: Row(
