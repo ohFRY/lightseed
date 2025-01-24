@@ -2,6 +2,14 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+/*
+Class representing a quote object with an ID, quote, and author.
+The class also contains a factory method to parse JSON data into a Quote object.
+The data is loaded from a local JSON file containing a list of quotes.
+
+The function geetRandomDailyQuote() returns a random quote based on the current day. 
+Returning a different quote each day, the quotes are cycled through in order.
+*/
 class Quote {
   final int id;
   final String quote;

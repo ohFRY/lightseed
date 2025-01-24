@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/models/affirmation.dart';
 import 'my_app_state.dart';
 
 class MyFavouritesPageState extends ChangeNotifier {
@@ -7,9 +8,9 @@ class MyFavouritesPageState extends ChangeNotifier {
 
   MyFavouritesPageState(this.appState);
 
-  List<String> get favorites => appState.favorites;
+  List<Affirmation> get favorites => appState.favorites;
 
-  void removeFavorite(String fav) {
+  void removeFavorite(Affirmation fav) {
     appState.removeFavorite(fav);
     notifyListeners();
   }
