@@ -25,7 +25,7 @@ class GeneratorPage extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: BigCard(text: affirmation.content),
+              child: AnimatedTextCard(text: affirmation.content),
             ),
             SizedBox(height: 10),
             Row(
