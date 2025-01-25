@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:lightseed/config.dart'; // Import the configuration file
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/affirmation.dart'; // Import the Affirmation model
 
 /*
 Service connecting to a Google Sheets API endpoint to fetch all affirmations or a specific affirmation by ID.
 */
 class AffirmationsService {
+  static const String _cacheKey = 'cached_affirmations';
+
 
   // Fetch all affirmations
   Future<List<Affirmation>> fetchAllAffirmations() async {
@@ -17,9 +20,11 @@ class AffirmationsService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['status'] == 'success') {
-          return (data['data'] as List)
+          final affirmations = (data['data'] as List)
               .map((item) => Affirmation.fromJson(item))
               .toList();
+          await _saveAffirmationsToCache(affirmations);
+          return affirmations;
         } else {
           throw Exception(data['message']);
         }
@@ -54,4 +59,24 @@ class AffirmationsService {
       throw Exception('Error fetching affirmation by ID: $e');
     }
   }
+
+
+  // Save affirmations to local cache
+  Future<void> _saveAffirmationsToCache(List<Affirmation> affirmations) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = json.encode(affirmations.map((a) => a.toJson()).toList());
+    await prefs.setString(_cacheKey, jsonString);
+  }
+
+  // Load affirmations from local cache
+  Future<List<Affirmation>> loadAffirmationsFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_cacheKey);
+    if (jsonString != null) {
+      final List<dynamic> jsonData = json.decode(jsonString);
+      return jsonData.map((item) => Affirmation.fromJson(item)).toList();
+    }
+    return [];
+  }
+
 }
