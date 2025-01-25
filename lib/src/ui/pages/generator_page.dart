@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:provider/provider.dart';
 import '../../logic/my_app_state.dart';
-import '../elements/big_card.dart';
+import '../elements/animated_text_card.dart';
 
 class GeneratorPage extends StatelessWidget {
 
@@ -31,20 +31,12 @@ class GeneratorPage extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    appState.getNext();
-                  },
-                  child: Text('Next'),
-                ),
-                SizedBox(width: 10),
                 ElevatedButton.icon(
                   onPressed: () {
                     appState.toggleFavorite();
                   },
                   icon: Icon(icon),
                   label: Text('Like'),
-                  
                 ),
               ],
             ),

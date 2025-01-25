@@ -63,7 +63,7 @@ class SplashScreenState extends State<SplashScreen> {
                           style: Theme.of(context).textTheme.displayMedium!,
                           child: AnimatedTextKit(
                             animatedTexts: [
-                              FadeAnimatedText(quote.quote, duration: const Duration(milliseconds: 2500), textAlign: TextAlign.center),
+                              FadeAnimatedText(quote.quote, duration: const Duration(milliseconds: 3000), textAlign: TextAlign.center),
                             ],
                             totalRepeatCount: 1,
                           ),
