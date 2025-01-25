@@ -44,6 +44,7 @@ class GeneratorPage extends StatelessWidget {
                   },
                   icon: Icon(icon),
                   label: Text('Like'),
+                  
                 ),
               ],
             ),
