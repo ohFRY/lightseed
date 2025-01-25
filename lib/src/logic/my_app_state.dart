@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import '../services/affirmations_service.dart';
@@ -7,9 +9,33 @@ class MyAppState extends ChangeNotifier {
   List<Affirmation> affirmations = [];
   int currentIndex = 0;
   Affirmation currentAffirmation = Affirmation(content: '', id: 0);
+  Timer? _timer;
 
   MyAppState() {
-    fetchAllAffirmations();
+    _initializeAffirmations();
+    _startPeriodicUpdate();
+  }
+
+  Future<void> _initializeAffirmations() async {
+    affirmations = await serviceAffirmations.loadAffirmationsFromCache();
+    if (affirmations.isEmpty) {
+      await fetchAllAffirmations();
+    } else {
+      currentAffirmation = affirmations[currentIndex];
+      notifyListeners();
+    }
+  }
+
+  void _startPeriodicUpdate() {
+    _timer = Timer.periodic(Duration(days: 1), (timer) async {
+      await fetchAllAffirmations();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> fetchAllAffirmations() async {
