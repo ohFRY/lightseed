@@ -11,7 +11,6 @@ Service connecting to a Google Sheets API endpoint to fetch all affirmations or 
 class AffirmationsService {
   static const String _cacheKey = 'cached_affirmations';
 
-
   // Fetch all affirmations
   Future<List<Affirmation>> fetchAllAffirmations() async {
     final String url = '$baseUrl?sheet=AFFIRMATIONS';

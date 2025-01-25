@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import '../services/affirmations_service.dart';
 
@@ -21,7 +22,7 @@ class MyAppState extends ChangeNotifier {
     if (affirmations.isEmpty) {
       await fetchAllAffirmations();
     } else {
-      currentAffirmation = affirmations[currentIndex];
+      currentAffirmation = getRandomDailyAffirmation();
       notifyListeners();
     }
   }
@@ -43,19 +44,11 @@ class MyAppState extends ChangeNotifier {
       final data = await serviceAffirmations.fetchAllAffirmations();
       affirmations = data;
       if (affirmations.isNotEmpty) {
-        currentAffirmation = affirmations[currentIndex];
+        currentAffirmation = getRandomDailyAffirmation();
       }
       notifyListeners();
     } catch (e) {
       print('Error fetching affirmations: $e');
-    }
-  }
-
-  void getNext() {
-    if (affirmations.isNotEmpty) {
-      currentIndex = (currentIndex + 1) % affirmations.length;
-      currentAffirmation = affirmations[currentIndex];
-      notifyListeners();
     }
   }
 
@@ -78,4 +71,13 @@ class MyAppState extends ChangeNotifier {
   Affirmation getCurrentAffirmation() {
     return currentAffirmation;
   }
+
+  // Get a random affirmation based on the current day
+  Affirmation getRandomDailyAffirmation() { 
+  final int dayOfYear = int.parse(DateFormat("D").format(DateTime.now()));
+  final int index = dayOfYear % affirmations.length;
+
+  return affirmations[index];
+}
+
 }
