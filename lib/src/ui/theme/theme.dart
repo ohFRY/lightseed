@@ -57,7 +57,9 @@ class MaterialTheme {
   }
 
   ThemeData light() {
-    return theme(lightScheme());
+    return theme(lightScheme()).copyWith(
+      pageTransitionsTheme: pageTransitionsTheme, 
+    );
   }
 
   static ColorScheme lightMediumContrastScheme() {
@@ -222,7 +224,9 @@ class MaterialTheme {
   }
 
   ThemeData dark() {
-    return theme(darkScheme());
+    return theme(darkScheme()).copyWith(
+      pageTransitionsTheme: pageTransitionsTheme, 
+    );
   }
 
   static ColorScheme darkMediumContrastScheme() {
@@ -387,3 +391,30 @@ class ColorFamily {
   final Color colorContainer;
   final Color onColorContainer;
 }
+
+// Class for no animation page transitions on desktop apps
+class NoAnimationPageTransitionsBuilder extends PageTransitionsBuilder {
+  const NoAnimationPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
+}
+
+// Theme for page transitions
+final pageTransitionsTheme = const PageTransitionsTheme(
+  builders: <TargetPlatform, PageTransitionsBuilder>{
+    TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+    TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    TargetPlatform.linux: NoAnimationPageTransitionsBuilder(),
+    TargetPlatform.macOS: NoAnimationPageTransitionsBuilder(),
+    TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
+  },
+);
