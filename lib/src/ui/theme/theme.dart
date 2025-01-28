@@ -345,7 +345,6 @@ class MaterialTheme {
     return theme(darkHighContrastScheme());
   }
 
-
   ThemeData theme(ColorScheme colorScheme) => ThemeData(
      useMaterial3: true,
      brightness: colorScheme.brightness,
@@ -357,7 +356,6 @@ class MaterialTheme {
      scaffoldBackgroundColor: colorScheme.surface,
      canvasColor: colorScheme.surface,
   );
-
 
   List<ExtendedColor> get extendedColors => [
   ];
