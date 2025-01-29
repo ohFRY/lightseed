@@ -8,6 +8,9 @@ class MyFavouritesPage extends StatelessWidget {
     var appState = context.watch<MyFavouritesPageState>();
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Timeline'),
+      ),
       body: Center(
         child: appState.favorites.isEmpty
             ? Text('No favorites yet.')

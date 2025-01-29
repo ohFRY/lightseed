@@ -18,7 +18,25 @@ class GeneratorPage extends StatelessWidget {
       icon = Icons.bookmark_outline;
     }
 
+    String getTitle() {
+      int hour = DateTime.now().hour;
+      if (hour < 12) {
+        return 'Good morning';
+      } else if (hour < 17) {
+        return 'Good afternoon';
+      } else if (hour < 20) {
+        return 'Good evening';
+      } else {
+        return 'Good night';
+      }
+    }
+
     return Scaffold(
+      appBar: AppBar(
+        title: Text(getTitle()),
+        toolbarHeight: 100, // Set the height of the AppBar
+        centerTitle: true,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
