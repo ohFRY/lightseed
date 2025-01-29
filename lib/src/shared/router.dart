@@ -5,13 +5,18 @@ class AppRoutes {
   static const favorites = '/favorites';
 
   static final List<NavigationDestination> destinations = [
+
     NavigationDestination(
-      icon: Icon(Icons.home),
-      label: 'Home',
+      icon: Icon(Icons.history),
+      label: 'Past',
     ),
     NavigationDestination(
-      icon: Icon(Icons.favorite),
-      label: 'Favorites',
+      icon: Icon(Icons.today),
+      label: 'Today',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.trending_up),
+      label: 'Future',
     ),
   ];
 }
