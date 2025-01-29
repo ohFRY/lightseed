@@ -13,9 +13,9 @@ class GeneratorPage extends StatelessWidget {
 
     IconData icon;
     if (appState.favorites.contains(affirmation)) {
-      icon = Icons.favorite;
+      icon = Icons.bookmark;
     } else {
-      icon = Icons.favorite_border;
+      icon = Icons.bookmark_outline;
     }
 
     return Scaffold(
@@ -31,12 +31,12 @@ class GeneratorPage extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ElevatedButton.icon(
+                IconButton(
                   onPressed: () {
                     appState.toggleFavorite();
                   },
                   icon: Icon(icon),
-                  label: Text('Like'),
+                  tooltip: "Save",
                 ),
               ],
             ),

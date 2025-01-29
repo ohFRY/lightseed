@@ -14,16 +14,14 @@ class MyFavouritesPage extends StatelessWidget {
             : ListView(
                 children: [
                   ListTile(
-                    title: Text('Favorites', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Your favorite affirmations'),
-                    trailing: Text('${appState.favorites.length}'),
+                    title: Text('Your saved affirmations', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   for (var fav in appState.favorites)
                     ListTile(
-                      leading: Icon(Icons.favorite),
                       title: Text(fav.content),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
+                      titleTextStyle: Theme.of(context).textTheme.headlineMedium,
+                        trailing: IconButton(
+                        icon: Icon(Icons.bookmark),// Adjust the padding to align with the title
                         onPressed: () {
                           appState.removeFavorite(fav);
                         },
