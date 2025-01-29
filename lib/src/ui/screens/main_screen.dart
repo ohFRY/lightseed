@@ -14,19 +14,21 @@ class MyMainScreen extends StatefulWidget {
 }
 
 class _MyMainScreenState extends State<MyMainScreen> {
-  var selectedIndex = 0;
+  var selectedIndex = 1;
 
   @override
   Widget build(BuildContext context) {
     Widget page;
     switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
       case 1:
+        page = GeneratorPage();
+      case 0:
         page = ChangeNotifierProvider(
           create: (context) => MyFavouritesPageState(context.read<MyAppState>()),
           child: MyFavouritesPage(),
         );
+      case 2:
+        page = Placeholder();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
