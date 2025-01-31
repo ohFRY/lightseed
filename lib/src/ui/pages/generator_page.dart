@@ -13,32 +13,43 @@ class GeneratorPage extends StatelessWidget {
 
     IconData icon;
     if (appState.favorites.contains(affirmation)) {
-      icon = Icons.favorite;
+      icon = Icons.bookmark;
     } else {
-      icon = Icons.favorite_border;
+      icon = Icons.bookmark_outline;
+    }
+
+    String getTitle() {
+      int hour = DateTime.now().hour;
+      if (hour < 12) {
+        return 'Good morning';
+      } else if (hour < 17) {
+        return 'Good afternoon';
+      } else if (hour < 20) {
+        return 'Good evening';
+      } else {
+        return 'Good night';
+      }
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(getTitle()),
+        toolbarHeight: 100, // Set the height of the AppBar
+        centerTitle: true,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: AnimatedTextCard(text: affirmation.content),
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    appState.toggleFavorite();
-                  },
-                  icon: Icon(icon),
-                  label: Text('Like'),
-                ),
-              ],
+              child: AnimatedTextCard(
+                text: affirmation.content,
+                icon: icon,
+                onIconPressed: () {
+                  appState.toggleFavorite();
+                },
+              ),
             ),
           ],
         ),
