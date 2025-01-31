@@ -43,20 +43,13 @@ class GeneratorPage extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: AnimatedTextCard(text: affirmation.content),
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    appState.toggleFavorite();
-                  },
-                  icon: Icon(icon),
-                  tooltip: "Save",
-                ),
-              ],
+              child: AnimatedTextCard(
+                text: affirmation.content,
+                icon: icon,
+                onIconPressed: () {
+                  appState.toggleFavorite();
+                },
+              ),
             ),
           ],
         ),
