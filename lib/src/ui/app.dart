@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lightseed/src/logic/my_app_state.dart';
+import 'package:lightseed/src/logic/today_page_state.dart';
 import 'package:lightseed/src/ui/theme/theme.dart';
 import 'package:lightseed/src/ui/theme/util.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => TodayPageState(),
       child: buildMaterialApp(context, MyMainScreen()),
     );
   }

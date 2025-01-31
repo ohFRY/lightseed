@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:provider/provider.dart';
-import '../../logic/my_app_state.dart';
-import '../../logic/my_favourites_page_state.dart';
+import '../../logic/today_page_state.dart';
+import '../../logic/saved_affirmations_state.dart';
 import '../elements/navigation_rail.dart';
 import '../elements/navigation_bar.dart';
-import '../pages/generator_page.dart';
-import '../pages/my_favourites_page.dart';
+import '../pages/today_page.dart';
+import '../pages/saved_affirmations_page.dart';
 
 class MyMainScreen extends StatefulWidget {
   @override
@@ -21,11 +21,11 @@ class _MyMainScreenState extends State<MyMainScreen> {
     Widget page;
     switch (selectedIndex) {
       case 1:
-        page = GeneratorPage();
+        page = TodayPage();
       case 0:
         page = ChangeNotifierProvider(
-          create: (context) => MyFavouritesPageState(context.read<MyAppState>()),
-          child: MyFavouritesPage(),
+          create: (context) => SavedAffirmationsState(context.read<TodayPageState>()),
+          child: SavedAffirmationsPage(),
         );
       case 2:
         page = Placeholder();

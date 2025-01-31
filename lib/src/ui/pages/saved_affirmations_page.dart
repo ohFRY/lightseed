@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../logic/my_favourites_page_state.dart';
+import '../../logic/saved_affirmations_state.dart';
 
-class MyFavouritesPage extends StatelessWidget {
+class SavedAffirmationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyFavouritesPageState>();
+    var appState = context.watch<SavedAffirmationsState>();
 
     return Scaffold(
       appBar: AppBar(

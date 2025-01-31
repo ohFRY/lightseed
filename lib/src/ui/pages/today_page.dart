@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:provider/provider.dart';
-import '../../logic/my_app_state.dart';
+import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
 
-class GeneratorPage extends StatelessWidget {
+class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<TodayPageState>();
     Affirmation affirmation = appState.getCurrentAffirmation();
 
     IconData icon;
