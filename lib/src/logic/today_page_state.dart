@@ -5,14 +5,14 @@ import 'package:intl/intl.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import '../services/affirmations_service.dart';
 
-class MyAppState extends ChangeNotifier {
+class TodayPageState extends ChangeNotifier {
   final AffirmationsService serviceAffirmations = AffirmationsService();
   List<Affirmation> affirmations = [];
   int currentIndex = 0;
   Affirmation currentAffirmation = Affirmation(content: '', id: 0);
   Timer? _timer;
 
-  MyAppState() {
+  TodayPageState() {
     _initializeAffirmations();
     _startPeriodicUpdate();
   }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
-import 'my_app_state.dart';
+import 'today_page_state.dart';
 
-class MyFavouritesPageState extends ChangeNotifier {
-  final MyAppState appState;
+class SavedAffirmationsState extends ChangeNotifier {
+  final TodayPageState appState;
   bool isNavigationRailVisible = true;
 
-  MyFavouritesPageState(this.appState);
+  SavedAffirmationsState(this.appState);
 
   List<Affirmation> get favorites => appState.favorites;
 
