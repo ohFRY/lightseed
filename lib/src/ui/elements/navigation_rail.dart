@@ -17,12 +17,14 @@ class CustomNavigationRail extends StatelessWidget {
     return SafeArea(
       child: NavigationRail(
         extended: extended,
+        groupAlignment: 0.0,
         // Display labels under icons on tablets, hide on desktop (otherwise exception is raised)
         labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all, 
         destinations: AppRoutes.destinations.map((destination) {
           return NavigationRailDestination(
             icon: destination.icon,
             label: Text(destination.label),
+
           );
         }).toList(),
         selectedIndex: selectedIndex,
