@@ -41,8 +41,8 @@ class _AnimatedTextCardState extends State<AnimatedTextCard> {
               children: [
                 if (!isTextVisible) SizedBox(height: 20)
                 else
-                  SizedBox(
-                    height: 20,
+                  FittedBox(
+                    fit: BoxFit.fitWidth,
                     child: Center(
                       child: AnimatedTextKit(
                         animatedTexts: [
