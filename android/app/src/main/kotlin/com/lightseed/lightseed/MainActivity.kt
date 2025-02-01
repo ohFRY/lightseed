@@ -1,4 +1,4 @@
-package com.example.lightseed
+package com.lightseed.lightseed
 
 import io.flutter.embedding.android.FlutterActivity
 
