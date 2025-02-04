@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:lightseed/src/ui/screens/main_screen.dart';
-import 'package:lightseed/src/ui/screens/sign_screen.dart';
+import '../shared/router.dart'; // Import the router file
 
 class AuthStateListener extends StatefulWidget {
   final Widget child;
 
-  AuthStateListener({required this.child});
+  const AuthStateListener({required this.child, super.key});
 
   @override
   AuthStateListenerState createState() => AuthStateListenerState();
@@ -22,16 +21,10 @@ class AuthStateListenerState extends State<AuthStateListener> {
 
       if (event == AuthChangeEvent.signedIn && session != null) {
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MyMainScreen()),
-        );
+        Navigator.pushReplacementNamed(context, AppRoutes.main);
       } else if (event == AuthChangeEvent.signedOut) {
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SignPage()),
-        );
+        Navigator.pushReplacementNamed(context, AppRoutes.signIn);
       }
     });
   }

@@ -1,3 +1,4 @@
+import 'package:lightseed/src/models/user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthLogic {
@@ -44,15 +45,14 @@ class AuthLogic {
     }
   }
 
-  static Future<void> saveUserData(User user) async {
+  static Future<void> saveUserData(AppUser user) async {
     try {
       final response = await Supabase.instance.client
           .from('profiles') // Your custom table to store user data
           .upsert({
         'id': user.id, // Matches the id from auth.users
         'email': user.email,
-        'full_name': user.userMetadata?['full_name'],
-        'avatar_url': user.userMetadata?['avatar_url'],
+        ...user.toSupabaseMetadata(),
       });
 
       // The new client libraries may throw an exception on error, so you might not get a response.error.
@@ -65,4 +65,14 @@ class AuthLogic {
       print('Error saving user data: $e');
     }
   }
+
+  static Future<void> signOut() async {
+    try {
+      await Supabase.instance.client.auth.signOut();
+      print('User signed out successfully!');
+    } catch (e) {
+      print('Error during sign-out: $e');
+    }
+  }
+  
 }

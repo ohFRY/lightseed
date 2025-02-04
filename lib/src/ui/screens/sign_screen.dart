@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/ui/elements/snackbar.dart';
 
-class SignPage extends StatefulWidget {
+class SignScreen extends StatefulWidget {
   @override
-  SignPageState createState() => SignPageState();
+  SignScreenState createState() => SignScreenState();
 }
 
-class SignPageState extends State<SignPage> {
+class SignScreenState extends State<SignScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isSignUp = true;
