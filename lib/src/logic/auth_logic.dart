@@ -1,35 +1,37 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthLogic {
-  static Future<void> signUp(String email, String password) async {
+  static Future<String?> signUp(String email, String password) async {
     try {
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
       );
-      if (response.session != null) {
-        print('Error during sign-up: ${response.session.toString()}');
+      if (response.user != null && response.session == null) {
+        return 'Sign-up successful! Please confirm your email.';
+      } else if (response.session != null) {
+        return 'Sign-up successful and user is logged in!';
       } else {
-        print('Sign-up successful!');
+        return 'Sign-up response: ${response.toString()}';
       }
     } catch (e) {
-      print('Error during sign-up: $e');
+      return 'Error during sign-up: $e';
     }
   }
 
-  static Future<void> signIn(String email, String password) async {
+  static Future<String?> signIn(String email, String password) async {
     try {
       final response = await Supabase.instance.client.auth.signInWithPassword(
         email: email,
         password: password,
       );
       if (response.session != null) {
-        print('Error during sign-up: ${response.session.toString()}');
+        return 'Sign-in with email and password successful!';
       } else {
-        print('Sign-in with email and password successful!');
+        return 'Error during sign-in: ${response.toString()}';
       }
     } catch (e) {
-      print('Error during sign-in with email/password: $e');
+      return 'Error during sign-in with email/password: $e';
     }
   }
 

@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
+import 'package:lightseed/src/ui/elements/snackbar.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignPage extends StatefulWidget {
+  @override
+  SignPageState createState() => SignPageState();
+}
+
+class SignPageState extends State<SignPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isSignUp = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sign Up'),
+        title: Text(isSignUp ? 'Sign Up' : 'Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,15 +36,33 @@ class SignUpPage extends StatelessWidget {
               onPressed: () async {
                 final email = emailController.text;
                 final password = passwordController.text;
-                await AuthLogic.signUp(email, password);
+                if (isSignUp) {
+                  final response = await AuthLogic.signUp(email, password);
+                  if (response != null) {
+                    context.showSnackBar(response, isError: true);
+                  }
+                } else {
+                  final response = await AuthLogic.signIn(email, password);
+                  if (response != null) {
+                    context.showSnackBar(response, isError: true);
+                  }
+                }
               },
-              child: Text('Sign Up'),
+              child: Text(isSignUp ? 'Sign Up' : 'Login'),
             ),
             ElevatedButton(
               onPressed: () async {
                 await AuthLogic.signInWithGoogle();
               },
-              child: Text('Sign Up with Google'),
+              child: Text('Sign In with Google'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  isSignUp = !isSignUp;
+                });
+              },
+              child: Text(isSignUp ? 'Already have an account? Login' : 'Don\'t have an account? Sign Up'),
             ),
           ],
         ),
