@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/ui/elements/snackbar.dart';
+import 'package:lightseed/src/ui/app.dart';
 
 class SignScreen extends StatefulWidget {
   @override
@@ -36,17 +37,20 @@ class SignScreenState extends State<SignScreen> {
               onPressed: () async {
                 final email = emailController.text;
                 final password = passwordController.text;
+                String? response;
                 if (isSignUp) {
-                  final response = await AuthLogic.signUp(email, password);
-                  if (response != null) {
-                    context.showSnackBar(response, isError: true);
-                  }
+                  response = await AuthLogic.signUp(email, password);
                 } else {
-                  final response = await AuthLogic.signIn(email, password);
-                  if (response != null) {
-                    context.showSnackBar(response, isError: true);
-                  }
+                  response = await AuthLogic.signIn(email, password);
                 }
+                
+                if (response != null) {
+                  if (context.mounted) {context.showSnackBar(response, isError: true);}
+                }
+                if (context.mounted){
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => MyApp()),
+                );}
               },
               child: Text(isSignUp ? 'Sign Up' : 'Login'),
             ),

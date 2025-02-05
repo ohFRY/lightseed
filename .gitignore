@@ -46,5 +46,10 @@ app.*.map.json
 
 #environment variables
 lib/config.dart
+.env*
 
+#supabase local instance
+supabase/
+
+# Extra resources used for this project
 _resources/

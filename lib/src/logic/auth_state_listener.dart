@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/logic/account_state_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../shared/router.dart'; // Import the router file
 
 class AuthStateListener extends StatefulWidget {
   final Widget child;
@@ -21,12 +22,39 @@ class AuthStateListenerState extends State<AuthStateListener> {
 
       if (event == AuthChangeEvent.signedIn && session != null) {
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.main);
+        print('Navigating to main screen');
+        Provider.of<AccountState>(context, listen: false).setUserFromSupabase(session.user);
+/*         Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MyApp()),
+        ); */
       } else if (event == AuthChangeEvent.signedOut) {
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.signIn);
+        print('Navigating to sign-in screen');
+        Provider.of<AccountState>(context, listen: false).clearUser();
+        Navigator.of(context).pop();
+        /* Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => SignScreen()),
+        ); */
       }
     });
+
+/*     // Check the initial authentication state
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => SignScreen()),
+        );
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<AccountState>(context, listen: false).setUserFromSupabase(session.user);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MyMainScreen()),
+        );
+      });
+    }  */
+
   }
 
   @override

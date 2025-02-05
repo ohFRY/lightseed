@@ -26,7 +26,10 @@ class AccountState with ChangeNotifier {
 
   Future<void> signOut(BuildContext context) async {
     await AuthLogic.signOut();
-    if (!context.mounted) return;
-    Navigator.pushReplacementNamed(context, '/');
+  }
+
+  void clearUser() {
+    _user = null;
+    notifyListeners();
   }
 }

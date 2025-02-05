@@ -2,9 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/quote.dart';
 import 'package:lightseed/src/ui/app.dart';
-import 'package:lightseed/src/ui/screens/sign_screen.dart';
 import 'package:lottie/lottie.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -26,40 +24,20 @@ class SplashScreenState extends State<SplashScreen> {
     await Future.delayed(Duration(seconds: 4), () {});
     if (!mounted) return;
     
-    final session = Supabase.instance.client.auth.currentSession;
-    
-    // test if the user is already authenticated on Supabase
-    if (session != null) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => MyApp(),
-          transitionDuration: const Duration(milliseconds: 1000),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-        ),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => SignScreen(),
-          transitionDuration: const Duration(milliseconds: 1000),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-        ),
-      );
-    }
-  }
-
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => MyApp(),
+        transitionDuration: const Duration(milliseconds: 1000),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    ); 
+  } 
 
   @override
   Widget build(BuildContext context) {

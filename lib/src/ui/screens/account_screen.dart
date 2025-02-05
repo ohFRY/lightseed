@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lightseed/src/shared/router.dart';
+import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:provider/provider.dart';
 import '../../logic/account_state_screen.dart';
 
@@ -11,6 +11,7 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AccountState>(context).user;
+    final fullNameController = TextEditingController(text: user?.fullName);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,7 +30,7 @@ class AccountScreen extends StatelessWidget {
             Text(user?.email ?? '', style: TextStyle(fontSize: 18)),
             TextField(
               decoration: InputDecoration(labelText: 'Full Name'),
-              controller: TextEditingController(text: user?.fullName),
+              controller: fullNameController,
               onChanged: (value) {
                 user?.fullName = value;
               },
@@ -41,7 +42,10 @@ class AccountScreen extends StatelessWidget {
                   // Save user data and navigate to the main app
                   await Provider.of<AccountState>(context, listen: false).saveUserData();
                   if (!context.mounted) return;
-                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                  Navigator.of(context).pop();
+                  /* Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => MyApp()),
+                  ); */
                 },
                 child: Text('Complete Profile'),
               )
@@ -52,15 +56,20 @@ class AccountScreen extends StatelessWidget {
                     onPressed: () async {
                       // Save user data
                       await Provider.of<AccountState>(context, listen: false).saveUserData();
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop();
                     },
                     child: Text('Save'),
                   ),
                   SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      Provider.of<AccountState>(context, listen: false).signOut(context);
-                    },
-                    child: Text('Sign Out'),
+                  onPressed: () async {
+                    await AuthLogic.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text('Sign Out'),
                   ),
                 ],
               ),

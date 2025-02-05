@@ -20,8 +20,13 @@ class AuthLogic {
     }
   }
 
-  static Future<String?> signIn(String email, String password) async {
+    static Future<String?> signIn(String email, String password) async {
     try {
+      final currentSession = Supabase.instance.client.auth.currentSession;
+      if (currentSession != null) {
+        return 'User is already logged in!';
+      }
+
       final response = await Supabase.instance.client.auth.signInWithPassword(
         email: email,
         password: password,
@@ -52,6 +57,7 @@ class AuthLogic {
           .upsert({
         'id': user.id, // Matches the id from auth.users
         'email': user.email,
+        'full_name': user.fullName,
         ...user.toSupabaseMetadata(),
       });
 
