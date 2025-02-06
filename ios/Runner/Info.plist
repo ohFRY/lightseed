@@ -51,5 +51,27 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.847143055036-92prvt6vsb2a84ca4qpnmcoakddipcje</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Add this array for Deep Links -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>com.lightseed.lightseed</string>
+		</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/models/affirmation.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
@@ -9,6 +11,7 @@ class TodayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<TodayPageState>();
+    var accountState = context.watch<AccountState>();
     Affirmation affirmation = appState.getCurrentAffirmation();
 
     IconData icon;
@@ -20,14 +23,23 @@ class TodayPage extends StatelessWidget {
 
     String getTitle() {
       int hour = DateTime.now().hour;
+      String greeting;
       if (hour < 12) {
-        return 'Good morning';
+        greeting = 'Good morning';
       } else if (hour < 17) {
-        return 'Good afternoon';
+        greeting = 'Good afternoon';
       } else if (hour < 20) {
-        return 'Good evening';
+        greeting = 'Good evening';
       } else {
-        return 'Good night';
+        greeting = 'Good night';
+      }
+
+      String? fullName = accountState.user?.fullName;
+      if (fullName != null && fullName.isNotEmpty) {
+        String firstName = fullName.split(' ').first;
+        return '$greeting, $firstName';
+      } else {
+        return greeting;
       }
     }
 
@@ -36,6 +48,14 @@ class TodayPage extends StatelessWidget {
         title: Text(getTitle()),
         toolbarHeight: 100, // Set the height of the AppBar
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRoutes.account);
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(

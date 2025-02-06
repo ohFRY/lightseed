@@ -1,7 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/quote.dart';
-import 'package:lightseed/src/ui/app.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:lottie/lottie.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,20 +23,9 @@ class SplashScreenState extends State<SplashScreen> {
     // Simulate some background initialization work
     await Future.delayed(Duration(seconds: 4), () {});
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => MyApp(),
-        transitionDuration: const Duration(milliseconds: 1000),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
-        },
-      ),
-    );
-  }
+
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+  } 
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +45,7 @@ class SplashScreenState extends State<SplashScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // quote phrase
                     SizedBox(
                       height: 250,
                       child: DefaultTextStyle(
@@ -70,6 +60,7 @@ class SplashScreenState extends State<SplashScreen> {
                       ),
                     ),
                     
+                    // quote author
                     SizedBox(
                       height: 50,
                       child: DefaultTextStyle(
@@ -83,6 +74,7 @@ class SplashScreenState extends State<SplashScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Lottie animation
                     SizedBox(
                       width: 300,
                       child: Lottie.asset(
