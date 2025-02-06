@@ -25,20 +25,6 @@ class SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-    /* 
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => MyApp(),
-        transitionDuration: const Duration(milliseconds: 1000),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
-        },
-      ),
-    );  */
   } 
 
   @override

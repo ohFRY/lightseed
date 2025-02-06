@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/shared/animated_routes.dart';
 import 'package:lightseed/src/ui/screens/account_screen.dart';
 import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:lightseed/src/ui/screens/sign_screen.dart';
@@ -45,7 +46,7 @@ class AppRoutes {
           builder: (_) => session == null ? SignScreen() : MyMainScreen(),
         );
       case home:
-        return MaterialPageRoute(builder: (_) => MyMainScreen());
+        return FadePageRoute(page: MyMainScreen());
       case signin:
         return MaterialPageRoute(builder: (_) => SignScreen());
       case account:
