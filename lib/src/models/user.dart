@@ -21,7 +21,6 @@ class AppUser {
       email: map['email'],
       fullName: map['full_name'] ?? '',
       avatarUrl: map['avatar_url'],
-      darkMode: map['dark_mode'],
     );
   }
 
@@ -31,8 +30,28 @@ class AppUser {
       'email': email,
       'full_name': fullName,
       'avatar_url': avatarUrl,
+    };
+  }
+  
+  Map<String, dynamic> toProfileData() {
+    return {
+      'id': id,
+      'full_name': fullName,
+      'avatar_url': avatarUrl,
       'dark_mode': darkMode,
     };
+  }
+
+  AppUser copyWith({
+    String? id,
+    String? email,
+    String? fullName,
+  }) {
+    return AppUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      fullName: fullName ?? this.fullName,
+    );
   }
 
   // Convert Supabase User to AppUser

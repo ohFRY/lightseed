@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
+import 'package:lightseed/src/ui/screens/sign_screen.dart';
 import 'package:provider/provider.dart';
-import '../../logic/account_state_screen.dart';
+import 'package:lightseed/src/logic/account_state_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   final bool isFromSignUp;
+  final TextEditingController _fullNameController = TextEditingController();
 
-  const AccountScreen({super.key, this.isFromSignUp = false});
+  AccountScreen({super.key, this.isFromSignUp = false});
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AccountState>(context).user;
-    final fullNameController = TextEditingController(text: user?.fullName);
+    final accountState = Provider.of<AccountState>(context);
+    final user = accountState.user;
+    _fullNameController.text = user?.fullName ?? '';
 
+    // if there is no instance of user, navigate to SignScreen
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SignScreen()),);
+      });
+      return Container();
+    }
+
+    // otherwise, let's build the AccountScreen
     return Scaffold(
       appBar: AppBar(
         title: Text('Account'),
@@ -27,42 +39,28 @@ class AccountScreen extends StatelessWidget {
               child: Icon(Icons.person, size: 40),
             ),
             SizedBox(height: 16),
-            Text(user?.email ?? '', style: TextStyle(fontSize: 18)),
+            Text(user.email ?? '', style: TextStyle(fontSize: 18)),
             TextField(
+              controller: _fullNameController,
               decoration: InputDecoration(labelText: 'Full Name'),
-              controller: fullNameController,
               onChanged: (value) {
-                user?.fullName = value;
+                accountState.updateUserName(value);
               },
             ),
             Spacer(),
-            if (isFromSignUp)
-              ElevatedButton(
-                onPressed: () async {
-                  // Save user data and navigate to the main app
-                  await Provider.of<AccountState>(context, listen: false).saveUserData();
-                  if (!context.mounted) return;
-                  Navigator.of(context).pop();
-                  /* Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => MyApp()),
-                  ); */
-                },
-                child: Text('Complete Profile'),
-              )
-            else
               Column(
                 children: [
                   ElevatedButton(
                     onPressed: () async {
                       // Save user data
-                      await Provider.of<AccountState>(context, listen: false).saveUserData();
+                      await accountState.saveUserData();
                       if (!context.mounted) return;
                       Navigator.of(context).pop();
                     },
-                    child: Text('Save'),
+                    child: Text(isFromSignUp?'Complete Profile':"Save"),
                   ),
                   SizedBox(height: 16),
-                  ElevatedButton(
+                  if (!isFromSignUp) ElevatedButton(
                   onPressed: () async {
                     await AuthLogic.signOut();
                     if (context.mounted) {

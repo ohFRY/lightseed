@@ -13,6 +13,13 @@ class AccountState with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateUserName(String name) {
+    if (user != null) {
+      _user = user!.copyWith(fullName: name);
+      notifyListeners();
+    }
+  }
+
   void setUserFromSupabase(User user) {
     _user = AppUser.fromSupabaseUser(user);
     notifyListeners();

@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
+import 'package:lightseed/src/models/user.dart';
+import 'package:lightseed/src/ui/screens/sign_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,48 +17,104 @@ class AuthStateListener extends StatefulWidget {
 }
 
 class AuthStateListenerState extends State<AuthStateListener> {
+  late StreamSubscription<AuthState> _authStateSubscription;
+
   @override
   void initState() {
     super.initState();
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      _initializeUser(session.user);
+    }
+
+    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      print("AuthStateListener: received auth state change: ${data.event}");
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
-      if (event == AuthChangeEvent.signedIn && session != null) {
-        if (!mounted) return;
-        print('Navigating to main screen');
-        Provider.of<AccountState>(context, listen: false).setUserFromSupabase(session.user);
-/*         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => MyApp()),
-        ); */
-      } else if (event == AuthChangeEvent.signedOut) {
-        if (!mounted) return;
-        print('Navigating to sign-in screen');
-        Provider.of<AccountState>(context, listen: false).clearUser();
-        Navigator.of(context).pop();
-        /* Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => SignScreen()),
-        ); */
+      switch (event) {
+        case AuthChangeEvent.signedOut:
+          print('AuthStateListener: User signed out');
+          if(!mounted) return;
+          Provider.of<AccountState>(context, listen: false).clearUser();
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SignScreen()),);
+          
+        case AuthChangeEvent.signedIn:
+          if (session != null) {
+            if (event == AuthChangeEvent.signedIn) {
+              if (!mounted) return;
+              print('AuthStateListener: User signed in with ID: ${session.user.id}');
+              
+              try {
+                // Fetch profile data first
+                final userData = await Supabase.instance.client
+                    .from('profiles')
+                    .select()
+                    .eq('id', session.user.id)
+                    .single();
+                print('Profile data fetched: $userData');
+                
+                final appUser = AppUser(
+                  id: session.user.id,
+                  email: session.user.email ?? '',
+                  fullName: userData['full_name'] ?? '',
+                );
+                
+                if (!mounted) return;
+                Provider.of<AccountState>(context, listen: false).setUser(appUser);
+              } catch (e) {
+                print('Error fetching profile: $e');
+                // Fallback to basic user
+                Provider.of<AccountState>(context, listen: false).setUserFromSupabase(session.user);
+              }
+              
+            } else if (event == AuthChangeEvent.signedOut) {
+              if (!mounted) return;
+              print('AuthStateListener: User signed out');
+              Provider.of<AccountState>(context, listen: false).clearUser();
+              Navigator.of(context).pop();
+            }
+          }
+          
+        default:
+          print('AuthStateListener: Unhandled auth event: $event');
       }
-    });
+    },
+    onError: (error) {
+        print("AuthStateListener: error: $error");
+      },
+  );
+  }
 
-/*     // Check the initial authentication state
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => SignScreen()),
-        );
-      });
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<AccountState>(context, listen: false).setUserFromSupabase(session.user);
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => MyMainScreen()),
-        );
-      });
-    }  */
+  Future<void> _initializeUser(User supabaseUser) async {
+    try {
+      final userData = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', supabaseUser.id)
+          .single();
+      
+      final appUser = AppUser(
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+        fullName: userData['full_name'] ?? '',
+      );
+      
+      if (!mounted) return;
+      Provider.of<AccountState>(context, listen: false).setUser(appUser);
+    } catch (e) {
+      print('Error initializing user: $e');
+      if (!mounted) return;
+      Provider.of<AccountState>(context, listen: false).setUserFromSupabase(supabaseUser);
+    }
+  }
 
+  @override
+  void dispose() {
+    print("AuthStateListener: disposing");
+    _authStateSubscription.cancel();
+    super.dispose();
   }
 
   @override

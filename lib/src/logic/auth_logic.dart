@@ -56,7 +56,6 @@ class AuthLogic {
           .from('profiles') // Your custom table to store user data
           .upsert({
         'id': user.id, // Matches the id from auth.users
-        'email': user.email,
         'full_name': user.fullName,
         ...user.toSupabaseMetadata(),
       });
