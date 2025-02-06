@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
-import 'package:lightseed/src/ui/elements/snackbar.dart';
 import 'package:lightseed/src/ui/app.dart';
+import 'package:lightseed/src/ui/elements/snackbar.dart';
 
 class SignScreen extends StatefulWidget {
   @override
@@ -48,9 +48,10 @@ class SignScreenState extends State<SignScreen> {
                   if (context.mounted) {context.showSnackBar(response, isError: true);}
                 }
                 if (context.mounted){
-                  Navigator.of(context).pushReplacement(
+                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => MyApp()),
-                );}
+                ); 
+                }
               },
               child: Text(isSignUp ? 'Sign Up' : 'Login'),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/models/affirmation.dart';
-import 'package:lightseed/src/ui/screens/account_screen.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
@@ -52,12 +52,7 @@ class TodayPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.person),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AccountScreen(),
-                ),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.account);
             },
           ),
         ],

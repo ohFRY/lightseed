@@ -1,9 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/models/user.dart';
-import 'package:lightseed/src/ui/screens/sign_screen.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -38,7 +37,8 @@ class AuthStateListenerState extends State<AuthStateListener> {
           print('AuthStateListener: User signed out');
           if(!mounted) return;
           Provider.of<AccountState>(context, listen: false).clearUser();
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SignScreen()),);
+          Navigator.of(context).pop();
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.signin, (route) => false);
           
         case AuthChangeEvent.signedIn:
           if (session != null) {
@@ -99,6 +99,8 @@ class AuthStateListenerState extends State<AuthStateListener> {
         id: supabaseUser.id,
         email: supabaseUser.email ?? '',
         fullName: userData['full_name'] ?? '',
+        avatarUrl: userData['avatar_url'],
+        darkMode: userData['dark_mode'],
       );
       
       if (!mounted) return;

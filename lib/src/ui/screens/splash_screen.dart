@@ -1,7 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/quote.dart';
-import 'package:lightseed/src/ui/app.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:lottie/lottie.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,7 +23,9 @@ class SplashScreenState extends State<SplashScreen> {
     // Simulate some background initialization work
     await Future.delayed(Duration(seconds: 4), () {});
     if (!mounted) return;
-    
+
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+    /* 
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
@@ -36,7 +38,7 @@ class SplashScreenState extends State<SplashScreen> {
           );
         },
       ),
-    ); 
+    );  */
   } 
 
   @override

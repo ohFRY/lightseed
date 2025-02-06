@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/today_page_state.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:lightseed/src/ui/theme/theme.dart';
 import 'package:lightseed/src/ui/theme/util.dart';
 import 'package:provider/provider.dart';
-import 'screens/main_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -12,18 +12,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => TodayPageState(),
-      child: buildMaterialApp(context, MyMainScreen()),
+      child: buildMaterialApp(context),
     );
   }
 }
 
-MaterialApp buildMaterialApp(BuildContext context, Widget home) {
+MaterialApp buildMaterialApp(BuildContext context) {
   final brightness = View.of(context).platformDispatcher.platformBrightness;
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     title: "LightSeed",
     theme: _buildThemeData(context, brightness),
-    home: home,
+    onGenerateRoute: AppRoutes.onGenerateRoute,
+    initialRoute: AppRoutes.splash,
   );
 }
 

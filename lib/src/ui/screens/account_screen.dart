@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
-import 'package:lightseed/src/ui/screens/sign_screen.dart';
+import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 
@@ -19,7 +19,7 @@ class AccountScreen extends StatelessWidget {
     // if there is no instance of user, navigate to SignScreen
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SignScreen()),);
+        Navigator.of(context).pushNamed(AppRoutes.signin);
       });
       return Container();
     }
@@ -65,6 +65,11 @@ class AccountScreen extends StatelessWidget {
                     await AuthLogic.signOut();
                     if (context.mounted) {
                       Navigator.of(context).pop();
+                      // Pop to root and replace with SignScreen
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.signin,
+                        (route) => false
+                      );
                     }
                   },
                   child: Text('Sign Out'),
