@@ -26,10 +26,11 @@ class SignScreenState extends State<SignScreen> {
         body: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 32.0),
+              padding: const EdgeInsets.only(top: 156.0),
               child: Image.asset(
                 'assets/logo.png',
-                height: 100, // Adjust the height as needed
+                height: 100,
+                 // Adjust the height as needed
               ),
             ),
             Expanded(
@@ -90,6 +91,7 @@ class SignScreenState extends State<SignScreen> {
                         },
                         child: Text('Sign In with Google'),
                       ),
+                  SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
                       setState(() {
