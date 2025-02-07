@@ -1,23 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
-import 'today_page_state.dart';
+import 'package:lightseed/src/services/saved_affirmations_service.dart';
 
 class SavedAffirmationsState extends ChangeNotifier {
-  final TodayPageState appState;
-  bool isNavigationRailVisible = true;
+  final SavedAffirmationsService _service = SavedAffirmationsService();
+  List<Affirmation> _favorites = [];
+  String? _error;
+  
+  List<Affirmation> get favorites => _favorites;
+  String? get error => _error;
 
-  SavedAffirmationsState(this.appState);
-
-  List<Affirmation> get favorites => appState.favorites;
-
-  void removeFavorite(Affirmation fav) {
-    appState.removeFavorite(fav);
-    notifyListeners();
+  Future<void> loadFavorites() async {
+    try {
+      _error = null;
+      _favorites = await _service.loadSavedAffirmations();
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to load favorites: $e';
+      notifyListeners();
+    }
   }
-
-  void clearFavorites() {
-    appState.favorites.clear();
-    notifyListeners();
+  
+  Future<void> addFavorite(Affirmation affirmation) async {
+    try {
+      _error = null;
+      await _service.saveAffirmation(affirmation);
+      await loadFavorites();
+    } catch (e) {
+      _error = 'Failed to save affirmation: $e';
+      notifyListeners();
+    }
   }
-
+  
+  Future<void> removeFavorite(Affirmation affirmation) async {
+    try {
+      _error = null;
+      await _service.removeSavedAffirmation(affirmation.id);
+      await loadFavorites();
+    } catch (e) {
+      _error = 'Failed to remove affirmation: $e';
+      notifyListeners();
+    }
+  }
 }

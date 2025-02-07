@@ -19,7 +19,7 @@ class AuthLogic {
       return 'Error during sign-up: $e';
     }
   }
-
+  
     static Future<String?> signIn(String email, String password) async {
     try {
       final currentSession = Supabase.instance.client.auth.currentSession;

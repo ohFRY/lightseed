@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
+import 'package:lightseed/src/logic/timeline_state.dart';
+import 'package:lightseed/src/models/timeline_item.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
@@ -10,16 +12,14 @@ class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<TodayPageState>();
+    var todayState = context.watch<TodayPageState>();
+    var timelineState = context.watch<TimelineState>();
     var accountState = context.watch<AccountState>();
-    Affirmation affirmation = appState.getCurrentAffirmation();
-
-    IconData icon;
-    if (appState.favorites.contains(affirmation)) {
-      icon = Icons.bookmark;
-    } else {
-      icon = Icons.bookmark_outline;
-    }
+    
+    Affirmation currentAffirmation = todayState.currentAffirmation;
+    bool isSaved = timelineState.items
+        .any((item) => item.type == TimelineItemType.affirmation && 
+                       item.id == currentAffirmation.id);
 
     String getTitle() {
       int hour = DateTime.now().hour;
@@ -64,10 +64,14 @@ class TodayPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: AnimatedTextCard(
-                text: affirmation.content,
-                icon: icon,
+                text: currentAffirmation.content,
+                icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
                 onIconPressed: () {
-                  appState.toggleFavorite();
+                  if (isSaved) {
+                    timelineState.removeFromTimeline(TimelineItem.fromAffirmation(currentAffirmation));
+                  } else {
+                    timelineState.addToTimeline(TimelineItem.fromAffirmation(currentAffirmation));
+                  }
                 },
               ),
             ),

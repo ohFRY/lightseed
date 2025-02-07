@@ -49,7 +49,10 @@ lib/config.dart
 .env*
 
 #supabase local instance
-supabase/
+supabase/.branches
+supabase/.temp
+supabase/.gitignore
+supabase/config.toml
 
 # Extra resources used for this project
 _resources/
