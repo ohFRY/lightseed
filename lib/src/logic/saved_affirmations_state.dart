@@ -3,28 +3,43 @@ import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/saved_affirmations_service.dart';
 
 class SavedAffirmationsState extends ChangeNotifier {
-  
-  //bool isNavigationRailVisible = true; //not sure why I have this here, commenting for now
-
   final SavedAffirmationsService _service = SavedAffirmationsService();
   List<Affirmation> _favorites = [];
+  String? _error;
   
   List<Affirmation> get favorites => _favorites;
+  String? get error => _error;
 
   Future<void> loadFavorites() async {
-    _favorites = await _service.loadSavedAffirmations();
-    notifyListeners();
+    try {
+      _error = null;
+      _favorites = await _service.loadSavedAffirmations();
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to load favorites: $e';
+      notifyListeners();
+    }
   }
   
   Future<void> addFavorite(Affirmation affirmation) async {
-    await _service.saveAffirmation(affirmation);
-    await loadFavorites(); // Reload to get updated list with timestamps
+    try {
+      _error = null;
+      await _service.saveAffirmation(affirmation);
+      await loadFavorites();
+    } catch (e) {
+      _error = 'Failed to save affirmation: $e';
+      notifyListeners();
+    }
   }
   
-  // Remove the saved affirmation from the list
   Future<void> removeFavorite(Affirmation affirmation) async {
-    _favorites.remove(affirmation);
-    notifyListeners();
+    try {
+      _error = null;
+      await _service.removeSavedAffirmation(affirmation.id);
+      await loadFavorites();
+    } catch (e) {
+      _error = 'Failed to remove affirmation: $e';
+      notifyListeners();
+    }
   }
-
 }
