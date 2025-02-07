@@ -1,14 +1,12 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lightseed/src/models/affirmation.dart';
-import '../services/affirmations_service.dart';
+import 'package:lightseed/src/services/affirmations_service.dart';  // Changed import
 
 class TodayPageState extends ChangeNotifier {
-  final AffirmationsService serviceAffirmations = AffirmationsService();
+  final AffirmationsService _affirmationsService = AffirmationsService();  // Changed service
   List<Affirmation> affirmations = [];
-  int currentIndex = 0;
   Affirmation currentAffirmation = Affirmation(content: '', id: 0);
   Timer? _timer;
 
@@ -18,7 +16,7 @@ class TodayPageState extends ChangeNotifier {
   }
 
   Future<void> _initializeAffirmations() async {
-    affirmations = await serviceAffirmations.loadAffirmationsFromCache();
+    affirmations = await _affirmationsService.loadAffirmationsFromCache();  // Changed service reference
     if (affirmations.isEmpty) {
       await fetchAllAffirmations();
     } else {
@@ -41,7 +39,7 @@ class TodayPageState extends ChangeNotifier {
 
   Future<void> fetchAllAffirmations() async {
     try {
-      final data = await serviceAffirmations.fetchAllAffirmations();
+      final data = await _affirmationsService.fetchAllAffirmations();  // Changed service reference
       affirmations = data;
       if (affirmations.isNotEmpty) {
         currentAffirmation = getRandomDailyAffirmation();
@@ -52,32 +50,9 @@ class TodayPageState extends ChangeNotifier {
     }
   }
 
-  var favorites = <Affirmation>[];
-
-  Future<void> toggleFavorite() async {
-    if (favorites.contains(currentAffirmation)) {
-      favorites.remove(currentAffirmation);
-    } else {
-      favorites.add(currentAffirmation);
-    }
-    notifyListeners();
-  }
-
-  void removeFavorite(Affirmation text) {
-    favorites.remove(text);
-    notifyListeners();
-  }
-
-  Affirmation getCurrentAffirmation() {
-    return currentAffirmation;
-  }
-
-  // Get a random affirmation based on the current day
   Affirmation getRandomDailyAffirmation() { 
-  final int dayOfYear = int.parse(DateFormat("D").format(DateTime.now()));
-  final int index = dayOfYear % affirmations.length;
-
-  return affirmations[index];
-}
-
+    final int dayOfYear = int.parse(DateFormat("D").format(DateTime.now()));
+    final int index = dayOfYear % affirmations.length;
+    return affirmations[index];
+  }
 }

@@ -30,29 +30,62 @@ class AppRoutes {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     print('onGenerateRoute called with: ${settings.name}');
+
+    // Authentication guard
+    final session = Supabase.instance.client.auth.currentSession;
+    final isAuthenticated = session != null;
+    
+    // Protected routes that require authentication
+    final protectedRoutes = [home, account];
+
+    // Redirect to signin if trying to access protected route while not authenticated
+    if (protectedRoutes.contains(settings.name) && !isAuthenticated) {
+      return MaterialPageRoute(
+        builder: (_) => SignScreen(),
+        fullscreenDialog: true,
+        maintainState: false,
+      );
+    }
+
     // Check if user is authenticated for initial route
     if (settings.name == splash) {
       final session = Supabase.instance.client.auth.currentSession;
       return MaterialPageRoute(
-        builder: (context) => session == null ? SignScreen() : SplashScreen(),
+        builder: (context) => session == null 
+            ? SignScreen() 
+            : SplashScreen(),
+        fullscreenDialog: true,
+        maintainState: false,
       );
     }
 
-    // Map routes directly without using getRoutes
-    switch (settings.name) {
-      case splash:
-        final session = Supabase.instance.client.auth.currentSession;
-        return MaterialPageRoute(
-          builder: (_) => session == null ? SignScreen() : MyMainScreen(),
-        );
-      case home:
-        return FadePageRoute(page: MyMainScreen());
-      case signin:
-        return MaterialPageRoute(builder: (_) => SignScreen());
-      case account:
-        return MaterialPageRoute(builder: (_) => AccountScreen());
-      default:
-        return MaterialPageRoute(builder: (_) => SignScreen());
+  // Map routes
+  switch (settings.name) {
+    case splash:
+      return MaterialPageRoute(
+        builder: (_) => isAuthenticated ? SplashScreen() : SignScreen(),
+        fullscreenDialog: true,
+        maintainState: false,
+      );
+    case home:
+      return FadePageRoute(page: MyMainScreen());
+    case signin:
+    return MaterialPageRoute(
+      builder: (_) => PopScope(
+          canPop: false, // Prevent back navigation
+          child: SignScreen(),
+        ),
+        fullscreenDialog: true,
+        maintainState: false,
+      );
+    case account:
+      return MaterialPageRoute(builder: (_) => AccountScreen());
+    default:
+      return MaterialPageRoute(
+        builder: (_) => isAuthenticated ? MyMainScreen() : SignScreen(),
+          fullscreenDialog: true,
+          maintainState: false,
+      );
     }
   }
 

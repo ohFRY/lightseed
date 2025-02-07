@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/logic/auth_state_listener.dart';
+import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/logic/today_page_state.dart';
 import 'package:lightseed/src/ui/app.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => TimelineState()),
         ChangeNotifierProvider(create: (_) => TodayPageState()),
         ChangeNotifierProvider(create: (_) => AccountState()),
       ],

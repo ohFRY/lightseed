@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/affirmation.dart';
-import 'today_page_state.dart';
+import 'package:lightseed/src/services/saved_affirmations_service.dart';
 
 class SavedAffirmationsState extends ChangeNotifier {
-  final TodayPageState appState;
-  bool isNavigationRailVisible = true;
+  
+  //bool isNavigationRailVisible = true; //not sure why I have this here, commenting for now
 
-  SavedAffirmationsState(this.appState);
+  final SavedAffirmationsService _service = SavedAffirmationsService();
+  List<Affirmation> _favorites = [];
+  
+  List<Affirmation> get favorites => _favorites;
 
-  List<Affirmation> get favorites => appState.favorites;
-
-  void removeFavorite(Affirmation fav) {
-    appState.removeFavorite(fav);
+  Future<void> loadFavorites() async {
+    _favorites = await _service.loadSavedAffirmations();
     notifyListeners();
   }
-
-  void clearFavorites() {
-    appState.favorites.clear();
+  
+  Future<void> addFavorite(Affirmation affirmation) async {
+    await _service.saveAffirmation(affirmation);
+    await loadFavorites(); // Reload to get updated list with timestamps
+  }
+  
+  // Remove the saved affirmation from the list
+  Future<void> removeFavorite(Affirmation affirmation) async {
+    _favorites.remove(affirmation);
     notifyListeners();
   }
 
