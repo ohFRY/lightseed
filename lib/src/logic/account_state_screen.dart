@@ -35,6 +35,14 @@ class AccountState with ChangeNotifier {
     await AuthLogic.signOut();
   }
 
+  Future<void> fetchUser() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      setUserFromSupabase(user);
+    }
+  }
+
   void clearUser() {
     _user = null;
     notifyListeners();

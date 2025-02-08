@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/ui/app.dart';
-import 'package:lightseed/src/ui/elements/snackbar.dart';
+import 'package:lightseed/src/ui/elements/snackbar.dart';// Import the NetworkStatus widget
 
 class SignScreen extends StatefulWidget {
   @override
@@ -17,95 +18,91 @@ class SignScreenState extends State<SignScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: Scaffold(
+      child: Scaffold( // This is the Scaffold
         appBar: AppBar(
           title: Text(isSignUp ? 'Sign Up' : 'Login'),
           centerTitle: true,
           automaticallyImplyLeading: false,
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 156.0),
-              child: Image.asset(
-                'assets/logo.png',
-                height: 100,
-                 // Adjust the height as needed
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextField(
-                        controller: emailController,
-                        decoration: InputDecoration(labelText: 'Email'),
-                        style: TextStyle(fontSize: 18), // Increased text size
-                      ),
-                      TextField(
-                        controller: passwordController,
-                        decoration: InputDecoration(labelText: 'Password'),
-                        obscureText: true,
-                        style: TextStyle(fontSize: 18), // Increased text size
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final email = emailController.text;
-                          final password = passwordController.text;
-                          String? response;
-                          if (isSignUp) {
-                            response = await AuthLogic.signUp(email, password);
-                          } else {
-                            response = await AuthLogic.signIn(email, password);
-                          }
+        body: NetworkStatus( // Wrap the content with NetworkStatus
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/logo.png',
+                      height: 100,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextField(
+                            controller: emailController,
+                            decoration: InputDecoration(labelText: 'Email'),
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          TextField(
+                            controller: passwordController,
+                            decoration: InputDecoration(labelText: 'Password'),
+                            obscureText: true,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final email = emailController.text;
+                              final password = passwordController.text;
+                              String? response;
+                              if (isSignUp) {
+                                response = await AuthLogic.signUp(email, password);
+                              } else {
+                                response = await AuthLogic.signIn(email, password);
+                              }
 
-                          if (response != null) {
-                            if (context.mounted) {
-                              context.showSnackBar(response, isError: true);
-                            }
-                          }
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (context) => MyApp()),
-                            );
-                          }
-                        },
-                        child: Text(isSignUp ? 'Sign Up' : 'Login'),
+                              if (response != null) {
+                                if (context.mounted) {
+                                  context.showSnackBar(response, isError: true);
+                                }
+                              }
+                              if (context.mounted) {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(builder: (context) => MyApp()),
+                                );
+                              }
+                            },
+                            child: Text(isSignUp ? 'Sign Up' : 'Login'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await AuthLogic.signInWithGoogle();
+                            },
+                            child: Text('Sign In with Google'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Column(
-                children: [
-                  ElevatedButton(
-                        onPressed: () async {
-                          await AuthLogic.signInWithGoogle();
-                        },
-                        child: Text('Sign In with Google'),
-                      ),
-                  SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        isSignUp = !isSignUp;
-                      });
-                    },
-                    child: Text(isSignUp
-                        ? 'Already have an account? Login'
-                        : 'Don\'t have an account? Sign Up'),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      isSignUp = !isSignUp;
+                    });
+                  },
+                  child: Text(isSignUp
+                      ? 'Already have an account? Login'
+                      : 'Don\'t have an account? Sign Up'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -9,17 +9,39 @@ import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
 
 class TodayPage extends StatelessWidget {
+  final bool animationPlayed;
+  final VoidCallback onAnimationFinished;
+
+  const TodayPage({super.key, required this.animationPlayed, required this.onAnimationFinished});
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: () => _refreshData(context), // Call _refreshData on pull-to-refresh
+        child: _buildBody(context),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     var todayState = context.watch<TodayPageState>();
     var timelineState = context.watch<TimelineState>();
     var accountState = context.watch<AccountState>();
-    
+
+    if (todayState.hasError) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Today'),
+        ),
+        body: const Center(
+          child: Text('Failed to load affirmations. Please check your connection.'),
+        ),
+      );
+    }
+
     Affirmation currentAffirmation = todayState.currentAffirmation;
-    bool isSaved = timelineState.items
-        .any((item) => item.type == TimelineItemType.affirmation && 
-                       item.id == currentAffirmation.id);
+    bool isSaved = timelineState.items.any((item) => item.type == TimelineItemType.affirmation && item.id == currentAffirmation.id);
 
     String getTitle() {
       int hour = DateTime.now().hour;
@@ -57,27 +79,42 @@ class TodayPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: AnimatedTextCard(
-                text: currentAffirmation.content,
-                icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                onIconPressed: () {
-                  if (isSaved) {
-                    timelineState.removeFromTimeline(TimelineItem.fromAffirmation(currentAffirmation));
-                  } else {
-                    timelineState.addToTimeline(TimelineItem.fromAffirmation(currentAffirmation));
-                  }
-                },
-              ),
+      body: ListView( // Wrap Column with ListView
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: AnimatedTextCard(
+                    text: currentAffirmation.content,
+                    icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                    onIconPressed: () {
+                      if (isSaved) {
+                        timelineState.removeFromTimeline(TimelineItem.fromAffirmation(currentAffirmation));
+                      } else {
+                        timelineState.addToTimeline(TimelineItem.fromAffirmation(currentAffirmation));
+                      }
+                    },
+                    animationPlayed: animationPlayed, // Pass the animation state
+                    onAnimationFinished: onAnimationFinished, // Pass the callback
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _refreshData(BuildContext context) async {
+    // Call the fetchAllAffirmations method to refresh the data
+    print("Refreshing data...");
+    await Provider.of<TodayPageState>(context, listen: false).fetchAllAffirmations();
+    // Call the fetchUser method to refresh the user data
+    if (!context.mounted) return; // Check if the widget is still mounted
+    await Provider.of<AccountState>(context, listen: false).fetchUser();
   }
 }

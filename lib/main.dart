@@ -37,7 +37,7 @@ class MyAppWithSplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AuthStateListener(
-        child: buildMaterialApp(context),
+        child: MyApp(),
       );
   }
 }

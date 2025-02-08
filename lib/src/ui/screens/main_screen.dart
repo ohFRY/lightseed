@@ -6,19 +6,22 @@ import '../pages/today_page.dart';
 import '../pages/timeline_page.dart';
 
 class MyMainScreen extends StatefulWidget {
+  const MyMainScreen({super.key});
+
   @override
   State<MyMainScreen> createState() => _MyMainScreenState();
 }
 
 class _MyMainScreenState extends State<MyMainScreen> {
   var selectedIndex = 1;
+  bool _animationPlayed = false; // Add a flag to track if the animation has played
 
   @override
   Widget build(BuildContext context) {
     Widget page;
     switch (selectedIndex) {
       case 1:
-        page = TodayPage();
+        page = TodayPage(animationPlayed: _animationPlayed, onAnimationFinished: _onAnimationFinished);
       case 0:
         page = TimelinePage();
       case 2:
@@ -94,5 +97,11 @@ class _MyMainScreenState extends State<MyMainScreen> {
         }
       },
     );
+  }
+
+  void _onAnimationFinished() {
+    setState(() {
+      _animationPlayed = true;
+    });
   }
 }
