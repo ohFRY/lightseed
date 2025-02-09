@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/shared/extensions.dart';
+import 'package:lightseed/src/ui/screens/offline_screen.dart';
 import '../elements/navigation_rail.dart';
 import '../elements/navigation_bar.dart';
 import '../pages/today_page.dart';
@@ -25,7 +26,7 @@ class _MyMainScreenState extends State<MyMainScreen> {
       case 0:
         page = TimelinePage();
       case 2:
-        page = Placeholder();
+        page = OfflineScreen();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }

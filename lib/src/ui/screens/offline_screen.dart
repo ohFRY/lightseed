@@ -15,19 +15,6 @@ class OfflineScreen extends StatelessWidget {
             'assets/animations/bg-waves-themed.json',
             fit: BoxFit.cover,
           ),
-
-          // Centered Text
-          Center(
-            child: Text(
-              "No internet connection",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white, // Adjust color as needed
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
