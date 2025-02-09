@@ -113,10 +113,7 @@ class NetworkStatusState extends State<NetworkStatus> {
 
   @override
   void dispose() {
-    if (mounted) {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.clearSnackBars();
-    }
+    // Remove ScaffoldMessenger access from dispose
     _connectivityService.dispose();
     _supabaseService.dispose();
     super.dispose();

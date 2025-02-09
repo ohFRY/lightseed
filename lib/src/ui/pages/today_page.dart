@@ -59,7 +59,7 @@ class TodayPage extends StatelessWidget {
       String? fullName = accountState.user?.fullName;
       if (fullName != null && fullName.isNotEmpty) {
         String firstName = fullName.split(' ').first;
-        return '$greeting, $firstName';
+        return '$greeting $firstName';
       } else {
         return greeting;
       }

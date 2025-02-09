@@ -59,6 +59,10 @@ class _MyMainScreenState extends State<MyMainScreen> {
         } else if (constraints.isTablet) {
           // Tablet
           return Scaffold(
+            appBar: AppBar(
+              title: Text('Today'),
+              automaticallyImplyLeading: false, // Remove back button
+            ),
             body: Row(
               children: [
                 CustomNavigationRail(

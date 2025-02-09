@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lightseed/src/shared/animated_routes.dart';
 import 'package:lightseed/src/ui/screens/account_screen.dart';
 import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:lightseed/src/ui/screens/sign_screen.dart';
@@ -11,6 +10,7 @@ class AppRoutes {
   static const splash = '/splash';
   static const String signin = '/signin';
   static const String account = '/account';
+  static const String accountSetup = '/account-setup'; // Add new route
 
   static final List<NavigationDestination> destinations = [
     NavigationDestination(
@@ -34,32 +34,46 @@ class AppRoutes {
     final session = Supabase.instance.client.auth.currentSession;
     final isAuthenticated = session != null;
 
-    // Map routes
     switch (settings.name) {
       case splash:
         return MaterialPageRoute(
-          builder: (_) => SplashScreen(), // Always show SplashScreen initially
+          builder: (_) => SplashScreen(),
           fullscreenDialog: true,
           maintainState: false,
         );
+        
       case home:
-        return FadePageRoute(page: MyMainScreen());
+        // Use pushAndRemoveUntil to clear the stack
+        return MaterialPageRoute(
+          builder: (_) => const MyMainScreen(),
+          maintainState: false,
+        );
+        
       case signin:
         return MaterialPageRoute(
           builder: (_) => PopScope(
-            canPop: false, // Prevent back navigation
+            canPop: false,
             child: SignScreen(),
           ),
           fullscreenDialog: true,
           maintainState: false,
         );
-      case account:
-        return MaterialPageRoute(builder: (_) => AccountScreen());
-      default:
-        // Default route: check authentication and navigate accordingly
+        
+      case accountSetup:
         return MaterialPageRoute(
-          builder: (_) => isAuthenticated ? MyMainScreen() : SignScreen(),
+          builder: (_) => AccountScreen(isFromSignUp: true),
           fullscreenDialog: true,
+        );
+
+      case account:  // Add explicit handling for account route
+        return MaterialPageRoute(
+          builder: (_) => AccountScreen(),
+          fullscreenDialog: true,
+        );
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => isAuthenticated ? const MyMainScreen() : SignScreen(),
           maintainState: false,
         );
     }

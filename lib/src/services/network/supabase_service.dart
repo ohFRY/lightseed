@@ -17,6 +17,7 @@ class SupabaseService {
       // Attempt a simple Supabase operation
       await Supabase.instance.client.from('profiles').select().limit(1).select();
       _supabaseStreamController.add(true); // Supabase is available
+      print("DEBUG: Supabase is available${DateTime.now()}");
     } catch (e) {
       print("Supabase connection error: $e");
       _supabaseStreamController.add(false); // Supabase is unavailable

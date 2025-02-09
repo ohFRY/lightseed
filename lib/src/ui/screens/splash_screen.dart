@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/quote.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -19,13 +20,25 @@ class SplashScreenState extends State<SplashScreen> {
     _initializeApp();
   }
 
-  _initializeApp() async {
-    // Simulate some background initialization work
-    await Future.delayed(Duration(seconds: 4), () {});
+  Future<void> _initializeApp() async {
+    // Show quote for at least 4 seconds
+    await Future.delayed(const Duration(seconds: 4));
+    
     if (!mounted) return;
 
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-  } 
+    // Check authentication status
+    final session = Supabase.instance.client.auth.currentSession;
+    final isAuthenticated = session != null;
+
+    if (!mounted) return;
+
+    // Navigate to appropriate screen and clear stack
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      isAuthenticated ? AppRoutes.home : AppRoutes.signin,
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

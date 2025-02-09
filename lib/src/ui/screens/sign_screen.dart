@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
-import 'package:lightseed/src/ui/app.dart';
-import 'package:lightseed/src/ui/elements/snackbar.dart';// Import the NetworkStatus widget
+import 'package:lightseed/src/shared/router.dart';
 
 class SignScreen extends StatefulWidget {
   @override
@@ -66,21 +65,37 @@ class SignScreenState extends State<SignScreen> {
                                   final email = emailController.text;
                                   final password = passwordController.text;
                                   String? response;
+                                  
                                   if (isSignUp) {
                                     response = await AuthLogic.signUp(email, password);
                                   } else {
                                     response = await AuthLogic.signIn(email, password);
                                   }
 
-                                  if (response != null && context.mounted) {
-                                    context.showSnackBar(response, isError: true);
+                                  if (!mounted) return;
+
+                                  // Show the response message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(response ?? 'Unknown error'),
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+
+                                  // Check if the response indicates success
+                                  if (response?.contains('successful') ?? false) {
+                                    if (!mounted) return;
+                                    // Navigate to the main app screen or account setup
+                                    if (isSignUp) {
+                                      // For new users, go to account setup
+                                      Navigator.pushReplacementNamed(context, AppRoutes.accountSetup);
+                                    } else {
+                                      // For existing users, go to main app screen
+                                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                                    }
                                   }
-                                  if (context.mounted) {
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(builder: (context) => MyApp()),
-                                    );
-                                  }
-                                } : null, // Disable button when offline
+                                  // If not successful, stay on the current screen
+                                } : null,
                                 child: Text(isSignUp ? 'Sign Up' : 'Login'),
                               ),
                               ElevatedButton(
