@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
         title: "LightSeed",
         theme: _buildThemeData(context, View.of(context).platformDispatcher.platformBrightness),
         onGenerateRoute: AppRoutes.onGenerateRoute,
-home: NetworkStatus( // Wrap the home with NetworkStatus
+        home: NetworkStatus( // Wrap the home with NetworkStatus
         child: Navigator(
           onGenerateRoute: AppRoutes.onGenerateRoute,
         initialRoute: _initialRoute,
