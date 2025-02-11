@@ -27,7 +27,7 @@ extension NetworkExtensions on BuildContext {
   void showOfflineSnackbar({String? message}) {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
-        content: Text(message ?? "You're offline. Features are unavailable."),
+        content: Text(message ?? "No connection. Features are unavailable."),
         duration: const Duration(days: 1),
         action: SnackBarAction(
           label: 'Dismiss',

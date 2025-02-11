@@ -4,9 +4,9 @@ import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/models/timeline_item.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
+import 'package:lightseed/src/shared/extensions.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
 
@@ -58,61 +58,39 @@ class TodayPage extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () async {
-              isOnline = NetworkStatus.of(context)?.isOnline ?? true;
+  icon: const Icon(Icons.person),
+  onPressed: () async {
+    // Use the NetworkStatus provider value if needed.
+    var isOnline = NetworkStatus.of(context)?.isOnline ?? true;
+    // Use our extension to check the server health.
+    final serverHealthy = await context.checkServerHealth();
+    if (!serverHealthy) isOnline = false;
 
-              // Perform an additional health check
-              try {
-                final healthCheck = await Supabase.instance.client
-                    .from('health_checks')
-                    .select()
-                    .limit(1)
-                    .maybeSingle()
-                    .timeout(const Duration(seconds: 5));
-                final serverOnline = (healthCheck != null);
-                debugPrint('🔑 Health check in UI: ${serverOnline ? 'online' : 'offline'}');
-                if (!serverOnline) isOnline = false;
-              } catch (e) {
-                debugPrint('🔑 Health check in UI failed: $e');
-                isOnline = false;
-              }
-
-              if (!isOnline) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text("You're offline. Features are unavailable."),
-                    duration: const Duration(days: 1),
-                    action: SnackBarAction(
-                      label: 'Dismiss',
-                      onPressed: () =>
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                    ),
-                  ),
-                );
-              } else {
-                if (!context.mounted) return;
-                Navigator.of(context).pushNamed(AppRoutes.account);
-              }
-            },
-          ),
+    if (!isOnline) {
+      if (!context.mounted) return;
+      context.showOfflineSnackbar();
+    } else {
+      if (!context.mounted) return;
+      Navigator.of(context).pushNamed(AppRoutes.account);
+    }
+  },
+),
         ],
       ),
       body: ListView(
         children: [
-          if (!isOnline)
+          /* if (!isOnline)   // TODO: commenting for now; delete later after testing
             Container(
               color: Theme.of(context).colorScheme.errorContainer,
               padding: const EdgeInsets.all(8),
               child: Text(
-                'You\'re offline. Some features may be unavailable.',
+                'Offline. Some features may be unavailable.',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onErrorContainer,
                 ),
                 textAlign: TextAlign.center,
               ),
-            ),
+            ), */
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
