@@ -84,7 +84,6 @@ class SignScreenState extends State<SignScreen> {
                                     );
 
                                     if (response.contains('successful')) {
-                                      
                                       if (!mounted) return;
                                       if (isSignUp) {
                                         Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.accountSetup);
