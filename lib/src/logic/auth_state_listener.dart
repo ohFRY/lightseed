@@ -106,9 +106,15 @@ class AuthStateListenerState extends State<AuthStateListener> {
       if (!mounted) return;
       Provider.of<AccountState>(context, listen: false).setUser(appUser);
     } catch (e) {
-      print('Error initializing user: $e');
+      debugPrint('Error initializing user: $e');
       if (!mounted) return;
-      Provider.of<AccountState>(context, listen: false).setUserFromSupabase(supabaseUser);
+      // If offline, create basic user from cached data
+      final basicUser = AppUser(
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+        fullName: 'Offline User', // Or get from local storage
+      );
+      Provider.of<AccountState>(context, listen: false).setUser(basicUser);
     }
   }
 

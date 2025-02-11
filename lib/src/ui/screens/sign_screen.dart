@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/router.dart';
+import 'package:lightseed/src/ui/elements/snackbar.dart';
 
 class SignScreen extends StatefulWidget {
   @override
@@ -18,15 +19,14 @@ class SignScreenState extends State<SignScreen> {
     print('DEBUG: SignScreen build');
     return PopScope(
       canPop: false,
-      child: Scaffold( // This is the Scaffold
+      child: Scaffold(
         appBar: AppBar(
           title: Text(isSignUp ? 'Sign Up' : 'Login'),
           centerTitle: true,
           automaticallyImplyLeading: false,
         ),
-        body: NetworkStatus( // Wrap the content with NetworkStatus
+        body: NetworkStatus(
           child: StreamBuilder<bool>(
-            // Get the network status stream from NetworkStatus
             stream: NetworkStatus.of(context)?.networkStatusStream,
             builder: (context, snapshot) {
               final bool isOnline = snapshot.data ?? true;
@@ -64,44 +64,44 @@ class SignScreenState extends State<SignScreen> {
                                 onPressed: isOnline ? () async {
                                   final email = emailController.text;
                                   final password = passwordController.text;
-                                  String? response;
                                   
-                                  if (isSignUp) {
-                                    response = await AuthLogic.signUp(email, password);
-                                  } else {
-                                    response = await AuthLogic.signIn(email, password);
-                                  }
-
                                   if (!mounted) return;
-
-                                  // Show the response message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(response ?? 'Unknown error'),
-                                      duration: const Duration(seconds: 3),
-                                    ),
-                                  );
-
-                                  // Check if the response indicates success
-                                  if (response?.contains('successful') ?? false) {
-                                    if (!mounted) return;
-                                    // Navigate to the main app screen or account setup
+                                  final scaffoldContext = context;
+                                  
+                                  try {
+                                    String? response;
                                     if (isSignUp) {
-                                      // For new users, go to account setup
-                                      Navigator.pushReplacementNamed(context, AppRoutes.accountSetup);
+                                      response = await AuthLogic.signUp(email, password);
                                     } else {
-                                      // For existing users, go to main app screen
-                                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                                      response = await AuthLogic.signIn(email, password);
                                     }
+
+                                    if (!context.mounted) return;
+                                    
+                                    scaffoldContext.showSnackBar(
+                                      response ?? 'Unknown error',
+                                      isError: !response!.contains('successful'),
+                                    );
+
+                                    if (response.contains('successful')) {
+                                      if (!mounted) return;
+                                      if (isSignUp) {
+                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.accountSetup);
+                                      } else {
+                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.home);
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    scaffoldContext.showSnackBar(e.toString(), isError: true);
                                   }
-                                  // If not successful, stay on the current screen
                                 } : null,
                                 child: Text(isSignUp ? 'Sign Up' : 'Login'),
                               ),
                               ElevatedButton(
                                 onPressed: isOnline ? () async {
                                   await AuthLogic.signInWithGoogle();
-                                } : null, // Disable button when offline
+                                } : null,
                                 child: Text('Sign In with Google'),
                               ),
                             ],

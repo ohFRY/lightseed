@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:lightseed/src/models/user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -80,4 +81,38 @@ class AuthLogic {
     }
   }
   
+  static Future<bool> checkAuthAndConnection() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) {
+        debugPrint('🔑 Auth check: No session found');
+        return false;
+      }
+      if (session.isExpired) {
+        debugPrint('🔑 Auth check: Session expired');
+        return false;
+      }
+
+      try {
+        final healthCheck = await Supabase.instance.client
+            .from('health_checks')
+            .select()
+            .limit(1)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 5));
+        final serverOnline = (healthCheck != null);
+        debugPrint('🔑 Server check: ${serverOnline ? 'online' : 'offline'}');
+
+        // For authenticated users, return online status from server check.
+        return serverOnline;
+      } catch (e) {
+        debugPrint('🔑 Server unreachable: $e');
+        // When the server is unreachable—but the user is authenticated—proceed in offline mode.
+        return true;
+      }
+    } catch (e) {
+      debugPrint('🔑 Auth check error: $e');
+      return false;
+    }
+  }
 }
