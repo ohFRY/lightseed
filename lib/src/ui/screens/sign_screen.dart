@@ -76,7 +76,7 @@ class SignScreenState extends State<SignScreen> {
                                       response = await AuthLogic.signIn(email, password);
                                     }
 
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
                                     
                                     scaffoldContext.showSnackBar(
                                       response ?? 'Unknown error',

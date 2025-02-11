@@ -79,6 +79,7 @@ class TodayPage extends StatelessWidget {
               }
 
               if (!isOnline) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text("You're offline. Features are unavailable."),
@@ -91,6 +92,7 @@ class TodayPage extends StatelessWidget {
                   ),
                 );
               } else {
+                if (!context.mounted) return;
                 Navigator.of(context).pushNamed(AppRoutes.account);
               }
             },
