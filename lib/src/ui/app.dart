@@ -22,33 +22,46 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _checkAuthentication() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    final isAuthenticated = session != null;
+    debugPrint('🔑 Checking authentication...');
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      final isAuthenticated = session != null;
+      debugPrint('🔑 Session exists: $isAuthenticated');
 
-    if (isAuthenticated) {
       setState(() {
-        _initialRoute = AppRoutes.home; // Set initial route to home
+        _initialRoute = isAuthenticated ? AppRoutes.home : AppRoutes.signin;
       });
-    } else {
-      setState(() {
-        _initialRoute = AppRoutes.signin; // Set initial route to signin
-      });
+    } catch (e) {
+      debugPrint('❌ Error checking authentication: $e');
+      // If we can't check auth (offline), but have cached session, allow home access
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        debugPrint('🔑 Using cached session');
+        setState(() {
+          _initialRoute = AppRoutes.home;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "LightSeed",
-        theme: _buildThemeData(context, View.of(context).platformDispatcher.platformBrightness),
-        onGenerateRoute: AppRoutes.onGenerateRoute,
-        home: NetworkStatus( // Wrap the home with NetworkStatus
-        child: Navigator(
-          onGenerateRoute: AppRoutes.onGenerateRoute,
-        initialRoute: _initialRoute,
-        ),
-      ),
+      debugShowCheckedModeBanner: false,
+      title: "LightSeed",
+      theme: _buildThemeData(context, View.of(context).platformDispatcher.platformBrightness),
+      builder: (context, child) {
+        return ScaffoldMessenger( // Replace with MaterialApp's scaffoldMessengerKey
+          key: GlobalKey<ScaffoldMessengerState>(),
+          child: Scaffold( // Add Scaffold here
+            body: NetworkStatus(
+              child: child ?? const SizedBox(),
+            ),
+          ),
+        );
+      },
+      onGenerateRoute: AppRoutes.onGenerateRoute,
+      initialRoute: _initialRoute,
     );
   }
 

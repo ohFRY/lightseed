@@ -3,6 +3,7 @@ import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/logic/auth_state_listener.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/logic/today_page_state.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:lightseed/src/ui/theme/theme.dart';
 import 'package:lightseed/src/ui/theme/util.dart';
@@ -14,6 +15,8 @@ import 'package:lightseed/config.dart'; // Import the configuration file
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  debugPrint('🚀 Starting app...');
 
   await Supabase.initialize(
     url: supabaseUrl,
@@ -27,7 +30,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => TodayPageState()),
         ChangeNotifierProvider(create: (_) => AccountState()),
       ],
-      child: MyAppWithSplashScreen(),
+      child: NetworkStatus( // Wrap MyAppWithSplashScreen with NetworkStatus
+        child: MyAppWithSplashScreen(),
+      ),
     ),
   );
 }

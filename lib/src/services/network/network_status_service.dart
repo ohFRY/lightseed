@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/services/network/supabase_service.dart';
 import 'package:rxdart/rxdart.dart';
+import 'dart:async';
 
 class NetworkStatus extends StatefulWidget {
   final Widget child;
@@ -15,105 +16,52 @@ class NetworkStatus extends StatefulWidget {
   NetworkStatusState createState() => NetworkStatusState();
 }
 
-class NetworkStatusState extends State<NetworkStatus> {
+class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserver {
   final _connectivityService = ConnectivityService();
   final _supabaseService = SupabaseService();
-  late Stream<bool> _connectivityStream;
-  late Stream<bool> _supabaseStream;
   late Stream<bool> _networkStatusStream;
-  bool _isSnackBarVisible = false;
-  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _currentSnackBar;
-
-  bool get isSnackBarVisible => _isSnackBarVisible;
-
+  bool _isOnline = true;
+  bool get isOnline => _isOnline;
   Stream<bool> get networkStatusStream => _networkStatusStream;
 
   @override
   void initState() {
+    debugPrint('🔄 NetworkStatus: initState called');
     super.initState();
+    _setupStreams();
+  }
+
+  void _setupStreams() {
+    debugPrint('🔄 NetworkStatus: setting up streams');
     
-    // Debounce connectivity changes
-    _connectivityStream = _connectivityService.connectivityStream
-        .debounceTime(const Duration(milliseconds: 300))
+    final connectivityStream = _connectivityService.connectivityStream
         .distinct()
         .asBroadcastStream();
-
-    // Debounce Supabase connection changes and add stability delay
-    _supabaseStream = _supabaseService.supabaseStream
-        .debounceTime(const Duration(seconds: 2))
+    
+    final supabaseStream = _supabaseService.supabaseStream
         .distinct()
         .asBroadcastStream();
 
     _networkStatusStream = Rx.combineLatest2(
-      _connectivityStream,
-      _supabaseStream,
-      (isConnected, isSupabaseConnected) {
-        print('DEBUG: Combined network status: connected=$isConnected, supabase=$isSupabaseConnected');
-        return isConnected && isSupabaseConnected;
-      },
-    )
-    .distinct()
-    .debounceTime(const Duration(milliseconds: 500))
-    .asBroadcastStream();
-
-    // Use async handler for better state management
-    _networkStatusStream.listen(_handleNetworkStatusChange);
-  }
-
-  Future<void> _handleNetworkStatusChange(bool isOnline) async {
-    if (!mounted) return;
-
-    // Ensure we're on the right frame
-    await WidgetsBinding.instance.endOfFrame;
-    if (!mounted) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    
-    try {
-      if (!isOnline) {
-        if (!_isSnackBarVisible) {
-          print('DEBUG: Showing network status snackbar');
-          // Clear any existing snackbar first
-          messenger.clearSnackBars();
-          await Future.delayed(const Duration(milliseconds: 300));
-          
-          if (!mounted) return;
-          
-          _currentSnackBar = messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Cannot connect to server'),
-              duration: Duration(days: 365),
-              dismissDirection: DismissDirection.none,
-            ),
-          );
-          _isSnackBarVisible = true;
-
-          // Listen for snackbar closure
-          _currentSnackBar?.closed.then((_) {
-            if (mounted) {
-              _isSnackBarVisible = false;
-              _currentSnackBar = null;
-            }
+      connectivityStream,
+      supabaseStream,
+      (bool deviceOnline, bool serverOnline) {
+        final status = deviceOnline && serverOnline;
+        debugPrint('🔄 Network status update - Device: $deviceOnline, Server: $serverOnline, Combined: $status');
+        if (mounted) {
+          setState(() {
+            _isOnline = status;
+            debugPrint('🔄 NetworkStatus state updated to: $_isOnline');
           });
         }
-      } else if (_isSnackBarVisible) {
-        print('DEBUG: Hiding network status snackbar');
-        // Clear all snackbars to ensure proper cleanup
-        messenger.clearSnackBars();
-        _currentSnackBar = null;
-        _isSnackBarVisible = false;
-      }
-    } catch (e) {
-      print('DEBUG: Error handling network status change: $e');
-      // Reset state on error
-      _isSnackBarVisible = false;
-      _currentSnackBar = null;
-    }
+        return status;
+      },
+    ).asBroadcastStream();
   }
 
   @override
   void dispose() {
-    // Remove ScaffoldMessenger access from dispose
+    WidgetsBinding.instance.removeObserver(this);
     _connectivityService.dispose();
     _supabaseService.dispose();
     super.dispose();
@@ -121,6 +69,7 @@ class NetworkStatusState extends State<NetworkStatus> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔄 NetworkStatus: build called, isOnline: $_isOnline');
     return widget.child;
   }
 }

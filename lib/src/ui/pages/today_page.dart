@@ -3,8 +3,10 @@ import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/models/timeline_item.dart';
 import 'package:lightseed/src/models/affirmation.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
 
@@ -16,9 +18,12 @@ class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isOnline = NetworkStatus.of(context)?.isOnline ?? true;
+    debugPrint('📱 TodayPage: build called, isOnline: $isOnline');
+
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () => _refreshData(context), // Call _refreshData on pull-to-refresh
+        onRefresh: () => _refreshData(context),
         child: _buildBody(context),
       ),
     );
@@ -28,11 +33,12 @@ class TodayPage extends StatelessWidget {
     var todayState = context.watch<TodayPageState>();
     var timelineState = context.watch<TimelineState>();
     var accountState = context.watch<AccountState>();
+    var isOnline = NetworkStatus.of(context)?.isOnline ?? true;
 
     if (todayState.hasError) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Today'),
+          title: const Text('Today'),
         ),
         body: const Center(
           child: Text('Failed to load affirmations. Please check your connection.'),
@@ -41,46 +47,70 @@ class TodayPage extends StatelessWidget {
     }
 
     Affirmation currentAffirmation = todayState.currentAffirmation;
-    bool isSaved = timelineState.items.any((item) => item.type == TimelineItemType.affirmation && item.id == currentAffirmation.id);
-
-    String getTitle() {
-      int hour = DateTime.now().hour;
-      String greeting;
-      if (hour < 12) {
-        greeting = 'Good morning';
-      } else if (hour < 17) {
-        greeting = 'Good afternoon';
-      } else if (hour < 20) {
-        greeting = 'Good evening';
-      } else {
-        greeting = 'Good night';
-      }
-
-      String? fullName = accountState.user?.fullName;
-      if (fullName != null && fullName.isNotEmpty) {
-        String firstName = fullName.split(' ').first;
-        return '$greeting $firstName';
-      } else {
-        return greeting;
-      }
-    }
+    bool isSaved = timelineState.items.any((item) => 
+      item.type == TimelineItemType.affirmation && item.id == currentAffirmation.id
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(getTitle()),
-        toolbarHeight: 100, // Set the height of the AppBar
+        title: Text(getTitle(accountState)),
+        toolbarHeight: 100,
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.account);
+            icon: const Icon(Icons.person),
+            onPressed: () async {
+              isOnline = NetworkStatus.of(context)?.isOnline ?? true;
+
+              // Perform an additional health check
+              try {
+                final healthCheck = await Supabase.instance.client
+                    .from('health_checks')
+                    .select()
+                    .limit(1)
+                    .maybeSingle()
+                    .timeout(const Duration(seconds: 5));
+                final serverOnline = (healthCheck != null);
+                debugPrint('🔑 Health check in UI: ${serverOnline ? 'online' : 'offline'}');
+                if (!serverOnline) isOnline = false;
+              } catch (e) {
+                debugPrint('🔑 Health check in UI failed: $e');
+                isOnline = false;
+              }
+
+              if (!isOnline) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text("You're offline. Features are unavailable."),
+                    duration: const Duration(days: 1),
+                    action: SnackBarAction(
+                      label: 'Dismiss',
+                      onPressed: () =>
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+                    ),
+                  ),
+                );
+              } else {
+                Navigator.of(context).pushNamed(AppRoutes.account);
+              }
             },
           ),
         ],
       ),
-      body: ListView( // Wrap Column with ListView
+      body: ListView(
         children: [
+          if (!isOnline)
+            Container(
+              color: Theme.of(context).colorScheme.errorContainer,
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                'You\'re offline. Some features may be unavailable.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -90,15 +120,40 @@ class TodayPage extends StatelessWidget {
                   child: AnimatedTextCard(
                     text: currentAffirmation.content,
                     icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                    onIconPressed: () {
-                      if (isSaved) {
-                        timelineState.removeFromTimeline(TimelineItem.fromAffirmation(currentAffirmation));
-                      } else {
-                        timelineState.addToTimeline(TimelineItem.fromAffirmation(currentAffirmation));
+                    onIconPressed: () async {
+                      if (!isOnline) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cannot save while offline'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+
+                      try {
+                        if (isSaved) {
+                          await timelineState.removeFromTimeline(
+                            TimelineItem.fromAffirmation(currentAffirmation)
+                          );
+                        } else {
+                          await timelineState.addToTimeline(
+                            TimelineItem.fromAffirmation(currentAffirmation)
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       }
                     },
-                    animationPlayed: animationPlayed, // Pass the animation state
-                    onAnimationFinished: onAnimationFinished, // Pass the callback
+                    animationPlayed: animationPlayed,
+                    onAnimationFinished: onAnimationFinished,
                   ),
                 ),
               ],
@@ -109,12 +164,42 @@ class TodayPage extends StatelessWidget {
     );
   }
 
+  String getTitle(AccountState accountState) {
+    int hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour < 17) {
+      greeting = 'Good afternoon';
+    } else if (hour < 20) {
+      greeting = 'Good evening';
+    } else {
+      greeting = 'Good night';
+    }
+
+    String? fullName = accountState.user?.fullName;
+    if (fullName != null && fullName.isNotEmpty) {
+      String firstName = fullName.split(' ').first;
+      return '$greeting $firstName';
+    }
+    return greeting;
+  }
+
   Future<void> _refreshData(BuildContext context) async {
-    // Call the fetchAllAffirmations method to refresh the data
+    final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
+    if (!isOnline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot refresh while offline'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     print("Refreshing data...");
     await Provider.of<TodayPageState>(context, listen: false).fetchAllAffirmations();
-    // Call the fetchUser method to refresh the user data
-    if (!context.mounted) return; // Check if the widget is still mounted
+    if (!context.mounted) return;
     await Provider.of<AccountState>(context, listen: false).fetchUser();
   }
 }

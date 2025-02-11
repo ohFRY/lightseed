@@ -25,6 +25,9 @@ class SavedAffirmationsService {
   
   Future<void> saveAffirmation(Affirmation affirmation) async {
     try {
+      // Check connection first
+      await supabase.from('health_checks').select('status').limit(1).single();
+      
       await supabase.from('saved_affirmations').insert({
         'user_id': supabase.auth.currentUser!.id,
         'affirmation_id': affirmation.id,
@@ -34,7 +37,7 @@ class SavedAffirmationsService {
       });
     } catch (e) {
       print('Error saving affirmation: $e');
-      rethrow;
+      throw Exception('Cannot save while offline');
     }
   }
   
