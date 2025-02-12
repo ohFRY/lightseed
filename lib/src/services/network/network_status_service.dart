@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/services/network/supabase_service.dart';
+import 'package:lightseed/src/services/timeline_sync_service.dart';
+import 'package:lightseed/src/shared/extensions.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 
@@ -12,23 +15,51 @@ class NetworkStatus extends StatefulWidget {
     return context.findAncestorStateOfType<NetworkStatusState>();
   }
 
+  // to use when we want to force the network status check
+  // e.g. when the user wants to access to a screen that requires a connection with the server
+  static Future<void> checkStatus(BuildContext context) async {
+    final state = NetworkStatus.of(context);
+    if (state != null) {
+      await state.checkStatus();
+    }
+  }
+
   @override
   NetworkStatusState createState() => NetworkStatusState();
 }
 
 class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserver {
+  final _timelineSyncService = TimelineSyncService();
   final _connectivityService = ConnectivityService();
   final _supabaseService = SupabaseService();
+  bool _wasOffline = true;
+  bool _isOnline = false;
   late Stream<bool> _networkStatusStream;
-  bool _isOnline = true;
   bool get isOnline => _isOnline;
-  Stream<bool> get networkStatusStream => _networkStatusStream;
+  Stream<bool> get networkStatusStream => _networkStatusStream;  // Add this getter
+  final StreamController<bool> _manualUpdateController = StreamController<bool>.broadcast();
 
   @override
   void initState() {
     debugPrint('🔄 NetworkStatus: initState called');
     super.initState();
     _setupStreams();
+    _performInitialCheck();
+  }
+
+  Future<void> _performInitialCheck() async {
+    // Don't block the UI
+    unawaited(Future(() async {
+      if (!mounted) return;
+      final serverHealth = await context.checkServerHealth();
+      debugPrint('🔄 Initial server health check: $serverHealth');
+      if (mounted) {
+        setState(() {
+          // Only update if we're actually offline
+          _isOnline = _isOnline || serverHealth;
+        });
+      }
+    }));
   }
 
   void _setupStreams() {
@@ -48,15 +79,42 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
       (bool deviceOnline, bool serverOnline) {
         final status = deviceOnline && serverOnline;
         debugPrint('🔄 Network status update - Device: $deviceOnline, Server: $serverOnline, Combined: $status');
+        
+        if (status && _wasOffline) {
+          _triggerSync();
+        }
+        
+        _wasOffline = !status;
         if (mounted) {
           setState(() {
             _isOnline = status;
-            debugPrint('🔄 NetworkStatus state updated to: $_isOnline');
           });
         }
         return status;
       },
     ).asBroadcastStream();
+
+    // Listen to the stream to ensure it's active
+    _networkStatusStream.listen((status) {
+      debugPrint('🔄 Network status stream event: $status');
+    });
+  }
+
+  Future<void> _triggerSync() async {
+    final userId = AuthLogic.getValidUserId();
+    if (userId != null) {
+      debugPrint('🔄 Network restored - starting sync');
+      await _timelineSyncService.syncItems(userId);
+    }
+  }
+
+  Future<void> checkStatus() async {
+    // Don't block navigation
+    unawaited(Future(() async {
+      if (!mounted) return;
+      final status = await context.checkServerHealth();
+      _manualUpdateController.add(status);
+    }));
   }
 
   @override
@@ -64,6 +122,7 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     WidgetsBinding.instance.removeObserver(this);
     _connectivityService.dispose();
     _supabaseService.dispose();
+    _manualUpdateController.close();
     super.dispose();
   }
 

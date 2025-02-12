@@ -18,15 +18,7 @@ class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOnline = NetworkStatus.of(context)?.isOnline ?? true;
-    debugPrint('📱 TodayPage: build called, isOnline: $isOnline');
-
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => _refreshData(context),
-        child: _buildBody(context),
-      ),
-    );
+    return _buildBody(context);  // Remove redundant Scaffold
   }
 
   Widget _buildBody(BuildContext context) {
@@ -58,39 +50,24 @@ class TodayPage extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-  icon: const Icon(Icons.person),
-  onPressed: () async {
-    // Use the NetworkStatus provider value if needed.
-    var isOnline = NetworkStatus.of(context)?.isOnline ?? true;
-    // Use our extension to check the server health.
-    final serverHealthy = await context.checkServerHealth();
-    if (!serverHealthy) isOnline = false;
-
-    if (!isOnline) {
-      if (!context.mounted) return;
-      context.showOfflineSnackbar();
-    } else {
-      if (!context.mounted) return;
-      Navigator.of(context).pushNamed(AppRoutes.account);
-    }
-  },
-),
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              // Start the check but don't await it
+              NetworkStatus.checkStatus(context);
+              
+              final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
+              if (!isOnline) {
+                context.showOfflineSnackbar();
+                return;
+              }
+              
+              Navigator.of(context).pushNamed(AppRoutes.account);
+            },
+          ),
         ],
       ),
       body: ListView(
         children: [
-          /* if (!isOnline)   // TODO: commenting for now; delete later after testing
-            Container(
-              color: Theme.of(context).colorScheme.errorContainer,
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                'Offline. Some features may be unavailable.',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ), */
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -110,7 +87,7 @@ class TodayPage extends StatelessWidget {
                         );
                         return;
                       }
-
+      
                       try {
                         if (isSaved) {
                           await timelineState.removeFromTimeline(
@@ -146,40 +123,21 @@ class TodayPage extends StatelessWidget {
 
   String getTitle(AccountState accountState) {
     int hour = DateTime.now().hour;
-    String greeting;
-    if (hour < 12) {
-      greeting = 'Good morning';
-    } else if (hour < 17) {
-      greeting = 'Good afternoon';
-    } else if (hour < 20) {
-      greeting = 'Good evening';
-    } else {
-      greeting = 'Good night';
+    String greeting = _getGreeting(hour);
+    
+    // Only append name if we have it
+    if (accountState.user?.fullName != null && accountState.user!.fullName!.isNotEmpty) {
+      return '$greeting ${accountState.user!.fullName!.split(' ').first}';
     }
-
-    String? fullName = accountState.user?.fullName;
-    if (fullName != null && fullName.isNotEmpty) {
-      String firstName = fullName.split(' ').first;
-      return '$greeting $firstName';
-    }
-    return greeting;
+    
+    return greeting; // Return just greeting if no name available
   }
 
-  Future<void> _refreshData(BuildContext context) async {
-    final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
-    if (!isOnline) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot refresh while offline'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    print("Refreshing data...");
-    await Provider.of<TodayPageState>(context, listen: false).fetchAllAffirmations();
-    if (!context.mounted) return;
-    await Provider.of<AccountState>(context, listen: false).fetchUser();
+  String _getGreeting(int hour) {
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 20) return 'Good evening';
+    return 'Good night';
   }
+
 }

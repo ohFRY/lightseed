@@ -12,8 +12,10 @@ class TodayPageState extends ChangeNotifier {
   Affirmation currentAffirmation = Affirmation(content: '', id: 0);
   Timer? _timer;
   bool _hasError = false;
+  bool _isLoading = false;
 
   bool get hasError => _hasError;
+  bool get isLoading => _isLoading;
 
   TodayPageState() {
     _initializeAffirmations();
@@ -22,6 +24,8 @@ class TodayPageState extends ChangeNotifier {
   }
 
   Future<void> _initializeAffirmations() async {
+    _isLoading = true;
+    notifyListeners();
     try {
       affirmations = await _affirmationsService.loadAffirmationsFromCache();
       if (affirmations.isEmpty) {
@@ -34,6 +38,9 @@ class TodayPageState extends ChangeNotifier {
     } catch (e) {
       print('Error initializing affirmations: $e');
       _hasError = true;
+      notifyListeners();
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
@@ -59,17 +66,20 @@ class TodayPageState extends ChangeNotifier {
   }
 
   Future<void> fetchAllAffirmations() async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      final data = await _affirmationsService.fetchAllAffirmations();
+      final data = await _affirmationsService.fetchAllAffirmationsFromDB();
       affirmations = data;
       if (affirmations.isNotEmpty) {
         currentAffirmation = getRandomDailyAffirmation();
       }
       _hasError = false;
-      notifyListeners();
     } catch (e) {
       print('Error fetching affirmations: $e');
       _hasError = true;
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
