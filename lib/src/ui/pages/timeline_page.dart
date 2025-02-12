@@ -9,11 +9,6 @@ class TimelinePage extends StatelessWidget {
     final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Timeline'),
-        toolbarHeight: 100,
-        centerTitle: true,
-      ),
       body: 
         Consumer<TimelineState>(
           builder: (context, timelineState, child) {

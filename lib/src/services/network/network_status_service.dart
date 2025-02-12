@@ -53,9 +53,12 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
       if (!mounted) return;
       final serverHealth = await context.checkServerHealth();
       debugPrint('🔄 Initial server health check: $serverHealth');
+      if (mounted) {
         setState(() {
-          _isOnline = serverHealth;
+          // Only update if we're actually offline
+          _isOnline = _isOnline || serverHealth;
         });
+      }
     }));
   }
 

@@ -9,17 +9,25 @@ class TimelineState extends ChangeNotifier {
   List<TimelineItem> _items = [];
   final String userId;
   bool _isRefreshing = false;
+  bool _isLoading = false;  // Add this
   
   List<TimelineItem> get items => _items;
   bool get isRefreshing => _isRefreshing;
+  bool get isLoading => _isLoading || _isRefreshing;  // Modify this
 
   TimelineState(this.userId) {
     loadTimeline();
   }
 
   Future<void> loadTimeline() async {
-    _items = await _service.getTimelineItems(userId);
+    _isLoading = true;
     notifyListeners();
+    try {
+      _items = await _service.getTimelineItems(userId);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> addToTimeline(TimelineItem item) async {

@@ -43,30 +43,9 @@ class MyMainScreenState extends State<MyMainScreen> {
   }
 
   Widget _buildPage(Widget page) {
-    return Stack(
-      children: [
-        RefreshIndicator(
-          onRefresh: () => handleRefresh(context),
-          child: page,
-        ),
-        // Add sync indicator at the top
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: StreamBuilder<bool>(
-            stream: NetworkStatus.of(context)?.networkStatusStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return LinearProgressIndicator(
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha((0.4 * 255).toInt()),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      ],
+    return RefreshIndicator(
+      onRefresh: () => handleRefresh(context),
+      child: page,
     );
   }
 
@@ -87,76 +66,100 @@ class MyMainScreenState extends State<MyMainScreen> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.isDesktop) {
-          // Desktop
-          return Scaffold(
-            body: Row(
-              children: [
-                CustomNavigationRail(
+    return Stack(
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.isDesktop) {
+              // Desktop
+              return Scaffold(
+                body: Row(
+                  children: [
+                    CustomNavigationRail(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (value) {
+                        setState(() {
+                          selectedIndex = value;
+                        });
+                      },
+                      extended: true,
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        child: page,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (constraints.isTablet) {
+              // Tablet
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text('Today'),
+                  automaticallyImplyLeading: false, // Remove back button
+                ),
+                body: Row(
+                  children: [
+                    CustomNavigationRail(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (value) {
+                        setState(() {
+                          selectedIndex = value;
+                        });
+                      },
+                      extended: false,
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        child: page,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              // Mobile
+              return Scaffold(
+                body: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+                bottomNavigationBar: CustomNavigationBar(
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
                     setState(() {
                       selectedIndex = value;
                     });
                   },
-                  extended: true,
                 ),
-                Expanded(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    child: page,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else if (constraints.isTablet) {
-          // Tablet
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('Today'),
-              automaticallyImplyLeading: false, // Remove back button
-            ),
-            body: Row(
-              children: [
-                CustomNavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
-                  extended: false,
-                ),
-                Expanded(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    child: page,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          // Mobile
-          return Scaffold(
-            body: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
-            ),
-            bottomNavigationBar: CustomNavigationBar(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-            ),
-          );
-        }
-      },
+              );
+            }
+          },
+        ),
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: StreamBuilder<bool>(
+          stream: NetworkStatus.of(context)?.networkStatusStream,
+          builder: (context, snapshot) {
+            final timelineState = Provider.of<TimelineState>(context);
+            final todayState = Provider.of<TodayPageState>(context);
+            
+            if ((timelineState.isLoading || todayState.isLoading) && 
+                NetworkStatus.of(context)?.isOnline == true) {
+              return LinearProgressIndicator(
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha((0.4 * 255).toInt()),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+      ],
     );
   }
 
