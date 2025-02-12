@@ -1,13 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'package:lightseed/src/services/timeline_sync_service.dart';
 import '../models/timeline_item.dart';
 import '../services/timeline_service.dart';
 
 class TimelineState extends ChangeNotifier {
   final TimelineService _service = TimelineService();
+  final TimelineSyncService _syncService = TimelineSyncService();
   List<TimelineItem> _items = [];
   final String userId;
+  bool _isRefreshing = false;
   
   List<TimelineItem> get items => _items;
+  bool get isRefreshing => _isRefreshing;
 
   TimelineState(this.userId) {
     loadTimeline();
@@ -32,5 +36,22 @@ class TimelineState extends ChangeNotifier {
     await _service.clearTimeline(userId);
     _items = [];
     notifyListeners();
+  }
+
+  Future<void> refreshTimeline() async {
+    if (_isRefreshing) return;
+    
+    _isRefreshing = true;
+    notifyListeners();
+
+    try {
+      await _syncService.syncItems(userId);
+      await loadTimeline();  // Reload local items after sync
+    } catch (e) {
+      debugPrint('❌ Timeline refresh failed: $e');
+    } finally {
+      _isRefreshing = false;
+      notifyListeners();
+    }
   }
 }

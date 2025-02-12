@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/services/network/supabase_service.dart';
+import 'package:lightseed/src/services/timeline_sync_service.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
@@ -27,10 +29,12 @@ class NetworkStatus extends StatefulWidget {
 }
 
 class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserver {
+  final _timelineSyncService = TimelineSyncService();
   final _connectivityService = ConnectivityService();
   final _supabaseService = SupabaseService();
+  bool _wasOffline = true;
+  bool _isOnline = false;
   late Stream<bool> _networkStatusStream;
-  bool _isOnline = false;  // Start pessimistically
   bool get isOnline => _isOnline;
   Stream<bool> get networkStatusStream => _networkStatusStream;  // Add this getter
   final StreamController<bool> _manualUpdateController = StreamController<bool>.broadcast();
@@ -72,6 +76,12 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
       (bool deviceOnline, bool serverOnline) {
         final status = deviceOnline && serverOnline;
         debugPrint('🔄 Network status update - Device: $deviceOnline, Server: $serverOnline, Combined: $status');
+        
+        if (status && _wasOffline) {
+          _triggerSync();
+        }
+        
+        _wasOffline = !status;
         if (mounted) {
           setState(() {
             _isOnline = status;
@@ -85,6 +95,14 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     _networkStatusStream.listen((status) {
       debugPrint('🔄 Network status stream event: $status');
     });
+  }
+
+  Future<void> _triggerSync() async {
+    final userId = AuthLogic.getValidUserId();
+    if (userId != null) {
+      debugPrint('🔄 Network restored - starting sync');
+      await _timelineSyncService.syncItems(userId);
+    }
   }
 
   Future<void> checkStatus() async {

@@ -6,6 +6,7 @@ import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:lightseed/src/shared/router.dart';
+import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:provider/provider.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
@@ -18,15 +19,7 @@ class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOnline = NetworkStatus.of(context)?.isOnline ?? true;
-    debugPrint('📱 TodayPage: build called, isOnline: $isOnline');
-
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => _refreshData(context),
-        child: _buildBody(context),
-      ),
-    );
+    return _buildBody(context);  // Remove redundant Scaffold
   }
 
   Widget _buildBody(BuildContext context) {
@@ -74,57 +67,60 @@ class TodayPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: AnimatedTextCard(
-                    text: currentAffirmation.content,
-                    icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                    onIconPressed: () async {
-                      if (!isOnline) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cannot save while offline'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        return;
-                      }
-
-                      try {
-                        if (isSaved) {
-                          await timelineState.removeFromTimeline(
-                            TimelineItem.fromAffirmation(currentAffirmation)
-                          );
-                        } else {
-                          await timelineState.addToTimeline(
-                            TimelineItem.fromAffirmation(currentAffirmation)
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
+      body: RefreshIndicator(
+        onRefresh: () => _handleRefresh(context),  // Use the common refresh handler
+        child: ListView(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: AnimatedTextCard(
+                      text: currentAffirmation.content,
+                      icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                      onIconPressed: () async {
+                        if (!isOnline) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              duration: const Duration(seconds: 2),
+                            const SnackBar(
+                              content: Text('Cannot save while offline'),
+                              duration: Duration(seconds: 2),
                             ),
                           );
+                          return;
                         }
-                      }
-                    },
-                    animationPlayed: animationPlayed,
-                    onAnimationFinished: onAnimationFinished,
+
+                        try {
+                          if (isSaved) {
+                            await timelineState.removeFromTimeline(
+                              TimelineItem.fromAffirmation(currentAffirmation)
+                            );
+                          } else {
+                            await timelineState.addToTimeline(
+                              TimelineItem.fromAffirmation(currentAffirmation)
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      animationPlayed: animationPlayed,
+                      onAnimationFinished: onAnimationFinished,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -148,21 +144,6 @@ class TodayPage extends StatelessWidget {
     return 'Good night';
   }
 
-  Future<void> _refreshData(BuildContext context) async {
-    final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
-    if (!isOnline) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot refresh while offline'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    print("Refreshing data...");
-    await Provider.of<TodayPageState>(context, listen: false).fetchAllAffirmations();
-    if (!context.mounted) return;
-    await Provider.of<AccountState>(context, listen: false).fetchUser();
-  }
+  Future<void> _handleRefresh(BuildContext context) => 
+    MyMainScreenState.handleRefresh(context);
 }
