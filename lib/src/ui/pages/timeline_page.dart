@@ -13,25 +13,6 @@ class TimelinePage extends StatelessWidget {
         title: const Text('Timeline'),
         toolbarHeight: 100,
         centerTitle: true,
-        actions: [
-          StreamBuilder<bool>(
-            stream: NetworkStatus.of(context)?.networkStatusStream,
-            builder: (context, snapshot) {
-              // Only show loading when explicitly waiting and offline
-              if (snapshot.connectionState == ConnectionState.waiting && !isOnline) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
       ),
       body: 
         Consumer<TimelineState>(

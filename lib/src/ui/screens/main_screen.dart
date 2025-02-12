@@ -43,9 +43,30 @@ class MyMainScreenState extends State<MyMainScreen> {
   }
 
   Widget _buildPage(Widget page) {
-    return RefreshIndicator(
-      onRefresh: () => handleRefresh(context),
-      child: page,
+    return Stack(
+      children: [
+        RefreshIndicator(
+          onRefresh: () => handleRefresh(context),
+          child: page,
+        ),
+        // Add sync indicator at the top
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: StreamBuilder<bool>(
+            stream: NetworkStatus.of(context)?.networkStatusStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return LinearProgressIndicator(
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha((0.4 * 255).toInt()),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
     );
   }
 
