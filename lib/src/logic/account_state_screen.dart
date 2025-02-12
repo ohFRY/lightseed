@@ -3,8 +3,9 @@ import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart';
 
-class AccountState with ChangeNotifier {
+class AccountState extends ChangeNotifier {
   AppUser? _user;
+  bool _isInitialized = false;
 
   AppUser? get user => _user;
 
@@ -36,10 +37,18 @@ class AccountState with ChangeNotifier {
   }
 
   Future<void> fetchUser() async {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-    if (user != null) {
-      setUserFromSupabase(user);
+    if (!_isInitialized) {
+      try {
+        final supabase = Supabase.instance.client;
+        final user = supabase.auth.currentUser;
+        if (user != null) {
+          setUserFromSupabase(user);
+        }
+      } catch (e) {
+        debugPrint('🔄 AccountState: Fetch failed - keeping existing user data');
+        // Don't update user if fetch fails - keep existing data
+      }
+      _isInitialized = true;
     }
   }
 
