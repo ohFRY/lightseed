@@ -60,7 +60,7 @@ class TodayPageState extends ChangeNotifier {
 
   Future<void> fetchAllAffirmations() async {
     try {
-      final data = await _affirmationsService.fetchAllAffirmations();
+      final data = await _affirmationsService.fetchAllAffirmationsFromDB();
       affirmations = data;
       if (affirmations.isNotEmpty) {
         currentAffirmation = getRandomDailyAffirmation();

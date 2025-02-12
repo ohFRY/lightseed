@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
+import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/logic/auth_state_listener.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/logic/today_page_state.dart';
@@ -26,11 +27,13 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TimelineState()),
+        ChangeNotifierProvider(
+          create: (_) => TimelineState(AuthLogic.getValidUserId() ?? '')
+        ),
         ChangeNotifierProvider(create: (_) => TodayPageState()),
-        ChangeNotifierProvider(create: (_) => AccountState()),
+        ChangeNotifierProvider(create: (_) => AccountState())
       ],
-      child: NetworkStatus( // Wrap MyAppWithSplashScreen with NetworkStatus
+      child: NetworkStatus(
         child: MyAppWithSplashScreen(),
       ),
     ),

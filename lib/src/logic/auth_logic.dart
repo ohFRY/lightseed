@@ -115,4 +115,13 @@ class AuthLogic {
       return false;
     }
   }
+
+  static String? getValidUserId() {
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session?.isExpired ?? true) {
+      debugPrint('⚠️ Session expired or null');
+      return null;
+    }
+    return Supabase.instance.client.auth.currentUser?.id;
+  }
 }

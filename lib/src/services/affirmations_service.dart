@@ -12,7 +12,7 @@ class AffirmationsService {
   static const String _cacheKey = 'cached_affirmations';
 
   // Fetch all affirmations
-  Future<List<Affirmation>> fetchAllAffirmations() async {
+  Future<List<Affirmation>> fetchAllAffirmationsFromDB() async {
     final String url = '$baseUrl?sheet=AFFIRMATIONS';
     try {
       final response = await http.get(Uri.parse(url));
@@ -22,7 +22,7 @@ class AffirmationsService {
           final affirmations = (data['data'] as List)
               .map((item) => Affirmation.fromJson(item))
               .toList();
-          await _saveAffirmationsToCache(affirmations);
+          await _cacheAllAffirmationsLocally(affirmations);
           return affirmations;
         } else {
           throw Exception(data['message']);
@@ -61,7 +61,7 @@ class AffirmationsService {
 
 
   // Save affirmations to local cache
-  Future<void> _saveAffirmationsToCache(List<Affirmation> affirmations) async {
+  Future<void> _cacheAllAffirmationsLocally(List<Affirmation> affirmations) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = json.encode(affirmations.map((a) => a.toJson()).toList());
     await prefs.setString(_cacheKey, jsonString);
