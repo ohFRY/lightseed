@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:provider/provider.dart';
 import '../../logic/timeline_state.dart';
@@ -18,7 +17,8 @@ class TimelinePage extends StatelessWidget {
           StreamBuilder<bool>(
             stream: NetworkStatus.of(context)?.networkStatusStream,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              // Only show loading when explicitly waiting and offline
+              if (snapshot.connectionState == ConnectionState.waiting && !isOnline) {
                 return const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: SizedBox(
@@ -33,15 +33,8 @@ class TimelinePage extends StatelessWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          final userId = AuthLogic.getValidUserId();
-          if (userId != null) {
-            final timelineState = Provider.of<TimelineState>(context, listen: false);
-            await timelineState.refreshTimeline();
-          }
-        },
-        child: Consumer<TimelineState>(
+      body: 
+        Consumer<TimelineState>(
           builder: (context, timelineState, child) {
             return timelineState.items.isEmpty
               ? const Center(child: Text('Your timeline is empty.'))
@@ -67,7 +60,6 @@ class TimelinePage extends StatelessWidget {
                 );
           },
         ),
-      ),
-    );
+      );
   }
 }

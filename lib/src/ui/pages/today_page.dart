@@ -6,7 +6,6 @@ import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:lightseed/src/shared/router.dart';
-import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:provider/provider.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
@@ -67,60 +66,57 @@ class TodayPage extends StatelessWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _handleRefresh(context),  // Use the common refresh handler
-        child: ListView(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: AnimatedTextCard(
-                      text: currentAffirmation.content,
-                      icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                      onIconPressed: () async {
-                        if (!isOnline) {
+      body: ListView(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: AnimatedTextCard(
+                    text: currentAffirmation.content,
+                    icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                    onIconPressed: () async {
+                      if (!isOnline) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cannot save while offline'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+      
+                      try {
+                        if (isSaved) {
+                          await timelineState.removeFromTimeline(
+                            TimelineItem.fromAffirmation(currentAffirmation)
+                          );
+                        } else {
+                          await timelineState.addToTimeline(
+                            TimelineItem.fromAffirmation(currentAffirmation)
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Cannot save while offline'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(e.toString()),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
-                          return;
                         }
-
-                        try {
-                          if (isSaved) {
-                            await timelineState.removeFromTimeline(
-                              TimelineItem.fromAffirmation(currentAffirmation)
-                            );
-                          } else {
-                            await timelineState.addToTimeline(
-                              TimelineItem.fromAffirmation(currentAffirmation)
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      animationPlayed: animationPlayed,
-                      onAnimationFinished: onAnimationFinished,
-                    ),
+                      }
+                    },
+                    animationPlayed: animationPlayed,
+                    onAnimationFinished: onAnimationFinished,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -144,6 +140,4 @@ class TodayPage extends StatelessWidget {
     return 'Good night';
   }
 
-  Future<void> _handleRefresh(BuildContext context) => 
-    MyMainScreenState.handleRefresh(context);
 }
