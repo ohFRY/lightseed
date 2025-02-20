@@ -4,17 +4,36 @@ import 'package:lightseed/src/shared/router.dart';
 import 'package:provider/provider.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   final bool isFromSignUp;
+
+  const AccountScreen({super.key, this.isFromSignUp = false});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
   final TextEditingController _fullNameController = TextEditingController();
 
-  AccountScreen({super.key, this.isFromSignUp = false});
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the controller with the current user's name
+    final user = context.read<AccountState>().user;
+    _fullNameController.text = user?.fullName ?? '';
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final accountState = Provider.of<AccountState>(context);
     final user = accountState.user;
-    _fullNameController.text = user?.fullName ?? '';
 
     // if there is no instance of user, navigate to SignScreen
     if (user == null) {
@@ -28,7 +47,7 @@ class AccountScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Account'),
-        leading: isFromSignUp ? null : BackButton(),
+        leading: widget.isFromSignUp ? null : BackButton(),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -44,7 +63,7 @@ class AccountScreen extends StatelessWidget {
               controller: _fullNameController,
               decoration: InputDecoration(labelText: 'Full Name'),
               onChanged: (value) {
-                accountState.updateUserName(value);
+                accountState.updateUserName(value, controller: _fullNameController);
               },
             ),
             Spacer(),
@@ -57,10 +76,10 @@ class AccountScreen extends StatelessWidget {
                       if (!context.mounted) return;
                       Navigator.of(context).pop();
                     },
-                    child: Text(isFromSignUp?'Complete Profile':"Save"),
+                    child: Text(widget.isFromSignUp?'Complete Profile':"Save"),
                   ),
                   SizedBox(height: 16),
-                  if (!isFromSignUp) ElevatedButton(
+                  if (!widget.isFromSignUp) ElevatedButton(
                   onPressed: () async {
                     await AuthLogic.signOut();
                     if (context.mounted) {
