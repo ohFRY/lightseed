@@ -1,9 +1,16 @@
 -- Clean up existing objects
-DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'saved_affirmations') THEN
+        -- Drop policies if table exists
+        DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
+        DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
+        DROP POLICY IF EXISTS "Users can delete their own saved affirmations" ON public.saved_affirmations;
+    END IF;
+END $$;
+
 DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
-DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
 DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
-DROP POLICY IF EXISTS "Users can delete their own saved affirmations" ON public.saved_affirmations;
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
 DROP POLICY IF EXISTS "Health checks are readable by everyone" ON public.health_checks;
 
