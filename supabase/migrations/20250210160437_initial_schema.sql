@@ -1,16 +1,35 @@
--- First, find and drop dependencies
+-- First, identify and drop all triggers
+DO $$ 
+DECLARE
+    trigger_record RECORD;
+BEGIN
+    -- Drop auth trigger specifically
+    DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+    -- Find and drop other triggers that might depend on the function
+    FOR trigger_record IN 
+        SELECT tgname, relname 
+        FROM pg_trigger, pg_class 
+        WHERE tgrelid = pg_class.oid 
+        AND tgfoid = (SELECT oid FROM pg_proc WHERE proname = 'handle_new_user')
+    LOOP
+        EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I', 
+            trigger_record.tgname, 
+            trigger_record.relname);
+    END LOOP;
+END $$;
+
+-- Drop policies if tables exist
 DO $$ 
 BEGIN
-    -- Drop triggers that might use the function
-    DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-    
-    -- Drop policies that might reference the tables
+    -- Check and drop saved_affirmations policies
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'saved_affirmations') THEN
         DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
         DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
         DROP POLICY IF EXISTS "Users can delete their own saved affirmations" ON public.saved_affirmations;
     END IF;
 
+    -- Check and drop profiles policies
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'profiles') THEN
         DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
         DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
@@ -42,12 +61,12 @@ BEGIN
     END IF;
 END $$;
 
--- Now drop tables with CASCADE to remove dependent objects
+-- Drop tables with CASCADE to remove dependent objects
 DROP TABLE IF EXISTS public.saved_affirmations CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.health_checks CASCADE;
 
--- Finally drop the function
+-- Finally drop the function with CASCADE
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- Create function to handle new users
