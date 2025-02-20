@@ -46,9 +46,9 @@ class TimelineItem {
 
   factory TimelineItem.fromJson(Map<String, dynamic> json) {
     return TimelineItem(
-      id: json['id'],
-      userId: json['user_id'],
-      content: json['content'],
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      content: json['content'] as String,
       type: TimelineItemType.values.firstWhere(
         (e) => e.toString().split('.').last == json['type'],
       ),
@@ -56,7 +56,7 @@ class TimelineItem {
       updatedAt: json['updated_at'] != null 
           ? DateTime.parse(json['updated_at']) 
           : null,
-      metadata: json['metadata'] ?? {},
+      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),  // Fix type casting
     );
   }
 
@@ -65,8 +65,9 @@ class TimelineItem {
     'user_id': userId,
     'content': content,
     'type': type.toString().split('.').last,
-    'created_at': createdAt.toIso8601String(),
-    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+    'created_at': createdAt.toUtc().toIso8601String(),  // Remove replaceAll('.000', '')
+    if (updatedAt != null) 
+      'updated_at': updatedAt!.toUtc().toIso8601String(),  // Remove replaceAll('.000', '')
     'metadata': metadata,
   };
 }

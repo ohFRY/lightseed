@@ -54,12 +54,12 @@ CREATE TABLE public.emotion_logs (
 );
 
 -- Add indexes for better performance
-CREATE INDEX public.emotion_logs_timeline_item_id_idx ON public.emotion_logs(timeline_item_id);
-CREATE INDEX public.emotion_logs_emotion_id_idx ON public.emotion_logs(emotion_id);
-CREATE INDEX public.emotions_valence_idx ON public.emotions(valence);
-CREATE INDEX public.emotions_arousal_idx ON public.emotions(arousal_level);
-CREATE INDEX public.timeline_items_type_idx ON public.timeline_items(type);
-CREATE INDEX public.timeline_items_user_id_type_idx ON public.timeline_items(user_id, type);
+CREATE INDEX emotion_logs_timeline_item_id_idx ON public.emotion_logs(timeline_item_id);
+CREATE INDEX emotion_logs_emotion_id_idx ON public.emotion_logs(emotion_id);
+CREATE INDEX emotions_valence_idx ON public.emotions(valence);
+CREATE INDEX emotions_arousal_idx ON public.emotions(arousal_level);
+CREATE INDEX timeline_items_type_idx ON public.timeline_items(type);
+CREATE INDEX timeline_items_user_id_type_idx ON public.timeline_items(user_id, type);
 
 -- Add RLS policies
 ALTER TABLE public.emotions ENABLE ROW LEVEL SECURITY;

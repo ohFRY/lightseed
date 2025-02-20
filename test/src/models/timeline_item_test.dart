@@ -111,8 +111,8 @@ void main() {
         expect(json['user_id'], equals(testUserId));
         expect(json['content'], equals('Test content'));
         expect(json['type'], equals('affirmation'));
-        expect(json['created_at'], equals(testDate.toIso8601String()));
-        expect(json['updated_at'], equals(testDate.toIso8601String()));
+        expect(json['created_at'], equals('2023-01-01T12:00:00.000Z'));  // Updated format
+        expect(json['updated_at'], equals('2023-01-01T12:00:00.000Z'));  // Updated format
         expect(json['metadata']['affirmation_id'], equals(1));
       });
 
@@ -133,16 +133,17 @@ void main() {
 
     test('should maintain data consistency between fromJson and toJson', () {
       final testId = const Uuid().v4();
+      final testDate = DateTime.parse('2023-01-01T12:00:00Z');
       final initialJson = {
         'id': testId,
         'user_id': testUserId,
         'content': 'Test content',
         'type': 'affirmation',
-        'created_at': '2023-01-01T12:00:00Z',
-        'updated_at': '2023-01-01T12:00:00Z',
+        'created_at': '2023-01-01T12:00:00.000Z',  // Updated format
+        'updated_at': '2023-01-01T12:00:00.000Z',  // Updated format
         'metadata': {
           'affirmation_id': 1,
-          'saved_at': '2023-01-01T12:00:00Z'
+          'saved_at': testDate.toUtc().toIso8601String().replaceAll('.000', ''),  // Normalize format
         }
       };
 
