@@ -11,19 +11,14 @@ class TimelineSyncService {
     try {
       final localItems = await _timelineService.getTimelineItems(userId);
       
-      // Query saved_affirmations instead of timeline_items
       final response = await Supabase.instance.client
-          .from('saved_affirmations')
+          .from('timeline_items')
           .select()
           .eq('user_id', userId);
       
-      final serverItems = (response as List).map((item) => TimelineItem(
-        id: item['affirmation_id'],
-        content: item['content'],
-        type: TimelineItemType.affirmation,
-        createdAt: DateTime.parse(item['created_at']),
-        savedAt: DateTime.parse(item['saved_at']),
-      )).toList();
+      final serverItems = (response as List)
+          .map((item) => TimelineItem.fromJson(item))
+          .toList();
 
       await _syncLocalToServer(localItems, serverItems, userId);
       await _syncServerToLocal(serverItems, localItems, userId);
@@ -39,28 +34,25 @@ class TimelineSyncService {
     List<TimelineItem> serverItems,
     String userId,
   ) async {
-    final itemsToSync = localItems.where((local) =>
-      !serverItems.any((server) => 
-        server.id == local.id && 
-        server.type == local.type
-      )
-    ).toList();
-
-    if (itemsToSync.isNotEmpty) {
-      debugPrint('📤 Uploading ${itemsToSync.length} items to server');
-      await Future.wait(
-        itemsToSync.map((item) => 
-          Supabase.instance.client
-              .from('saved_affirmations')
-              .insert({
-                'user_id': userId,
-                'affirmation_id': item.id,
-                'content': item.content,
-                'created_at': item.createdAt.toIso8601String(),
-                'saved_at': item.savedAt.toIso8601String(),
-              })
-        )
+    for (final localItem in localItems) {
+      final serverItem = serverItems.firstWhere(
+        (server) => server.id == localItem.id,
+        orElse: () => localItem,
       );
+
+      // If item exists on server, check if local is newer
+      if (serverItems.any((s) => s.id == localItem.id)) {
+        if (_shouldSync(localItem, serverItem)) {
+          await Supabase.instance.client
+              .from('timeline_items')
+              .upsert(localItem.toJson());
+        }
+      } else {
+        // Item doesn't exist on server, upload it
+        await Supabase.instance.client
+            .from('timeline_items')
+            .insert(localItem.toJson());
+      }
     }
   }
 
@@ -69,18 +61,27 @@ class TimelineSyncService {
     List<TimelineItem> localItems,
     String userId,
   ) async {
-    final itemsToSync = serverItems.where((server) =>
-      !localItems.any((local) => 
-        local.id == server.id && 
-        local.type == server.type
-      )
-    ).toList();
+    for (final serverItem in serverItems) {
+      final localItem = localItems.firstWhere(
+        (local) => local.id == serverItem.id,
+        orElse: () => serverItem,
+      );
 
-    if (itemsToSync.isNotEmpty) {
-      debugPrint('📥 Downloading ${itemsToSync.length} items from server');
-      for (final item in itemsToSync) {
-        await _timelineService.addToTimeline(item, userId);
+      // If item exists locally, check if server is newer
+      if (localItems.any((l) => l.id == serverItem.id)) {
+        if (_shouldSync(serverItem, localItem)) {
+          await _timelineService.addToTimeline(serverItem, userId);
+        }
+      } else {
+        // Item doesn't exist locally, download it
+        await _timelineService.addToTimeline(serverItem, userId);
       }
     }
+  }
+
+  bool _shouldSync(TimelineItem source, TimelineItem target) {
+    final sourceSavedAt = DateTime.parse(source.metadata['saved_at'] as String);
+    final targetSavedAt = DateTime.parse(target.metadata['saved_at'] as String);
+    return sourceSavedAt.isAfter(targetSavedAt);
   }
 }

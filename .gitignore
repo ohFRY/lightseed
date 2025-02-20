@@ -54,5 +54,8 @@ supabase/.temp
 supabase/.gitignore
 supabase/config.toml
 
+#supabase data seed
+supabase/seed/production/
+
 # Extra resources used for this project
 _resources/

@@ -17,9 +17,20 @@ class AccountState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUserName(String name) {
+  void updateUserName(String name, {TextEditingController? controller}) {
     if (user != null) {
+      // Store the current cursor position
+      final selection = controller?.selection;
+      
       _user = user!.copyWith(fullName: name);
+      
+      // Restore the cursor position after the update
+      if (controller != null) {
+        controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: selection?.baseOffset ?? name.length),
+        );
+      }
+      
       notifyListeners();
     }
   }

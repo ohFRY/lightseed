@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/main.dart';
 import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
 import 'package:lightseed/src/models/timeline_item.dart';
@@ -40,7 +41,8 @@ class TodayPage extends StatelessWidget {
 
     Affirmation currentAffirmation = todayState.currentAffirmation;
     bool isSaved = timelineState.items.any((item) => 
-      item.type == TimelineItemType.affirmation && item.id == currentAffirmation.id
+      item.type == TimelineItemType.affirmation && 
+      item.metadata['affirmation_id'] == currentAffirmation.id
     );
 
     return Scaffold(
@@ -90,12 +92,17 @@ class TodayPage extends StatelessWidget {
       
                       try {
                         if (isSaved) {
-                          await timelineState.removeFromTimeline(
-                            TimelineItem.fromAffirmation(currentAffirmation)
+                          final savedItem = timelineState.items.firstWhere((item) =>
+                            item.type == TimelineItemType.affirmation &&
+                            item.metadata['affirmation_id'] == currentAffirmation.id
                           );
+                          await timelineState.removeFromTimeline(savedItem);
                         } else {
                           await timelineState.addToTimeline(
-                            TimelineItem.fromAffirmation(currentAffirmation)
+                            TimelineItem.fromAffirmation(
+                              currentAffirmation,
+                              supabase.auth.currentUser!.id,
+                            )
                           );
                         }
                       } catch (e) {

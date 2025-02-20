@@ -1,26 +1,73 @@
--- Clean up existing objects
-DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
-DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
-DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
-DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
-DROP POLICY IF EXISTS "Users can delete their own saved affirmations" ON public.saved_affirmations;
-DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
-DROP POLICY IF EXISTS "Health checks are readable by everyone" ON public.health_checks;
+-- First, identify and drop all triggers
+DO $$ 
+DECLARE
+    trigger_record RECORD;
+BEGIN
+    -- Drop auth trigger specifically
+    DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
--- Drop existing constraints
-ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_user_id_fkey;
-ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
-ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_user_id_affirmation_id_key;
-ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_pkey;
-ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_username_key;
-ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_pkey;
-ALTER TABLE IF EXISTS ONLY public.health_checks DROP CONSTRAINT IF EXISTS health_checks_pkey;
+    -- Find and drop other triggers that might depend on the function
+    FOR trigger_record IN 
+        SELECT tgname, relname 
+        FROM pg_trigger, pg_class 
+        WHERE tgrelid = pg_class.oid 
+        AND tgfoid = (SELECT oid FROM pg_proc WHERE proname = 'handle_new_user')
+    LOOP
+        EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I', 
+            trigger_record.tgname, 
+            trigger_record.relname);
+    END LOOP;
+END $$;
 
--- Drop existing tables
-DROP TABLE IF EXISTS public.saved_affirmations;
-DROP TABLE IF EXISTS public.profiles;
-DROP TABLE IF EXISTS public.health_checks;
-DROP FUNCTION IF EXISTS public.handle_new_user();
+-- Drop policies if tables exist
+DO $$ 
+BEGIN
+    -- Check and drop saved_affirmations policies
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'saved_affirmations') THEN
+        DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
+        DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
+        DROP POLICY IF EXISTS "Users can delete their own saved affirmations" ON public.saved_affirmations;
+    END IF;
+
+    -- Check and drop profiles policies
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'profiles') THEN
+        DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
+        DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
+        DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
+    END IF;
+
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'health_checks') THEN
+        DROP POLICY IF EXISTS "Health checks are readable by everyone" ON public.health_checks;
+    END IF;
+END $$;
+
+-- Drop existing constraints (only if tables exist)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'saved_affirmations') THEN
+        ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_user_id_fkey;
+        ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_user_id_affirmation_id_key;
+        ALTER TABLE IF EXISTS ONLY public.saved_affirmations DROP CONSTRAINT IF EXISTS saved_affirmations_pkey;
+    END IF;
+
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'profiles') THEN
+        ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+        ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_username_key;
+        ALTER TABLE IF EXISTS ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_pkey;
+    END IF;
+
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'health_checks') THEN
+        ALTER TABLE IF EXISTS ONLY public.health_checks DROP CONSTRAINT IF EXISTS health_checks_pkey;
+    END IF;
+END $$;
+
+-- Drop tables with CASCADE to remove dependent objects
+DROP TABLE IF EXISTS public.saved_affirmations CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.health_checks CASCADE;
+
+-- Finally drop the function with CASCADE
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- Create function to handle new users
 CREATE FUNCTION public.handle_new_user() 
