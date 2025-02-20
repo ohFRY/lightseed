@@ -1,7 +1,10 @@
--- Clean up existing objects
+-- First, find and drop dependencies
 DO $$ 
 BEGIN
-    -- Drop policies if tables exist
+    -- Drop triggers that might use the function
+    DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+    
+    -- Drop policies that might reference the tables
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'saved_affirmations') THEN
         DROP POLICY IF EXISTS "Users can view their own saved affirmations" ON public.saved_affirmations;
         DROP POLICY IF EXISTS "Users can insert their own saved affirmations" ON public.saved_affirmations;
@@ -39,11 +42,13 @@ BEGIN
     END IF;
 END $$;
 
--- Drop existing tables
+-- Now drop tables with CASCADE to remove dependent objects
 DROP TABLE IF EXISTS public.saved_affirmations CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.health_checks CASCADE;
-DROP FUNCTION IF EXISTS public.handle_new_user();
+
+-- Finally drop the function
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- Create function to handle new users
 CREATE FUNCTION public.handle_new_user() 
