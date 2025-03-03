@@ -7,6 +7,7 @@ import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:lightseed/src/shared/router.dart';
+import 'package:lightseed/src/ui/elements/emotion_chip.dart';
 import 'package:provider/provider.dart';
 import '../../logic/today_page_state.dart';
 import '../elements/animated_text_card.dart';
@@ -19,111 +20,161 @@ class TodayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _buildBody(context);  // Remove redundant Scaffold
-  }
-
-  Widget _buildBody(BuildContext context) {
-    var todayState = context.watch<TodayPageState>();
-    var timelineState = context.watch<TimelineState>();
     var accountState = context.watch<AccountState>();
-    var isOnline = NetworkStatus.of(context)?.isOnline ?? true;
 
-    if (todayState.hasError) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Today'),
-        ),
-        body: const Center(
-          child: Text('Failed to load affirmations. Please check your connection.'),
-        ),
-      );
-    }
+    return ChangeNotifierProvider(
+      create: (_) => TodayPageState(accountState),
+      child: Consumer3<TodayPageState, TimelineState, AccountState>(
+        builder: (context, todayState, timelineState, accountState, child) {
+          var isOnline = NetworkStatus.of(context)?.isOnline ?? true;
 
-    Affirmation currentAffirmation = todayState.currentAffirmation;
-    bool isSaved = timelineState.items.any((item) => 
-      item.type == TimelineItemType.affirmation && 
-      item.metadata['affirmation_id'] == currentAffirmation.id
-    );
+          if (todayState.hasError) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Today'),
+              ),
+              body: const Center(
+                child: Text('Failed to load affirmations. Please check your connection.'),
+              ),
+            );
+          }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(getTitle(accountState)),
-        toolbarHeight: 100,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              // Start the check but don't await it
-              NetworkStatus.checkStatus(context);
-              
-              final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
-              if (!isOnline) {
-                context.showOfflineSnackbar();
-                return;
-              }
-              
-              Navigator.of(context).pushNamed(AppRoutes.account);
-            },
-          ),
-        ],
-      ),
-      body: ListView(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Affirmation currentAffirmation = todayState.currentAffirmation;
+          bool isSaved = timelineState.items.any((item) => 
+            item.type == TimelineItemType.affirmation && 
+            item.metadata['affirmation_id'] == currentAffirmation.id
+          );
+
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(getTitle(accountState)),
+              toolbarHeight: 100,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person),
+                  onPressed: () {
+                    // Start the check but don't await it
+                    NetworkStatus.checkStatus(context);
+                    
+                    final isOnline = NetworkStatus.of(context)?.isOnline ?? false;
+                    if (!isOnline) {
+                      context.showOfflineSnackbar();
+                      return;
+                    }
+                    
+                    Navigator.of(context).pushNamed(AppRoutes.account);
+                  },
+                ),
+              ],
+            ),
+            body: ListView(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: AnimatedTextCard(
-                    text: currentAffirmation.content,
-                    icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                    onIconPressed: () async {
-                      if (!isOnline) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cannot save while offline'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        return;
-                      }
-      
-                      try {
-                        if (isSaved) {
-                          final savedItem = timelineState.items.firstWhere((item) =>
-                            item.type == TimelineItemType.affirmation &&
-                            item.metadata['affirmation_id'] == currentAffirmation.id
-                          );
-                          await timelineState.removeFromTimeline(savedItem);
-                        } else {
-                          await timelineState.addToTimeline(
-                            TimelineItem.fromAffirmation(
-                              currentAffirmation,
-                              supabase.auth.currentUser!.id,
-                            )
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              duration: const Duration(seconds: 2),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: AnimatedTextCard(
+                          text: currentAffirmation.content,
+                          icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                          onIconPressed: () async {
+                            if (!isOnline) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Cannot save while offline'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+            
+                            try {
+                              if (isSaved) {
+                                final savedItem = timelineState.items.firstWhere((item) =>
+                                  item.type == TimelineItemType.affirmation &&
+                                  item.metadata['affirmation_id'] == currentAffirmation.id
+                                );
+                                await timelineState.removeFromTimeline(savedItem);
+                              } else {
+                                await timelineState.addToTimeline(
+                                  TimelineItem.fromAffirmation(
+                                    currentAffirmation,
+                                    supabase.auth.currentUser!.id,
+                                  )
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(e.toString()),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          animationPlayed: animationPlayed,
+                          onAnimationFinished: onAnimationFinished,
+                        ),
+                      ),
+                      // Display today's logged emotions here
+                      if (todayState.todayEmotions.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Today's Emotions",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          );
-                        }
-                      }
-                    },
-                    animationPlayed: animationPlayed,
-                    onAnimationFinished: onAnimationFinished,
+                            Wrap(
+                              spacing: 8.0,
+                              children: () {
+                                // Get emotion counts
+                                final counts = todayState.getEmotionCounts();
+                                
+                                // Create a set of unique emotion IDs
+                                final uniqueEmotionIds = todayState.todayEmotions
+                                    .map((e) => e.id)
+                                    .toSet();
+                                    
+                                // Map each unique emotion to a chip
+                                return uniqueEmotionIds.map((id) {
+                                  // Find the emotion object for this ID
+                                  final emotion = todayState.todayEmotions
+                                      .firstWhere((e) => e.id == id);
+                                      
+                                  // Get the count for this emotion
+                                  final count = counts[id] ?? 0;
+                                  
+                                  return EmotionChip(
+                                    label: emotion.name,
+                                    count: count,
+                                    // No need for selection or onTap since these are just displays
+                                  );
+                                }).toList();
+                              }(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.emotionLog);
+              },
+              child: const Icon(Icons.mood),
+            ),
+          );
+        },
       ),
     );
   }
@@ -146,5 +197,4 @@ class TodayPage extends StatelessWidget {
     if (hour < 20) return 'Good evening';
     return 'Good night';
   }
-
 }

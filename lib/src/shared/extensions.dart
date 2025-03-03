@@ -5,6 +5,13 @@ extension BreakpointUtils on BoxConstraints {
   bool get isTablet => maxWidth > 730;
   bool get isDesktop => maxWidth > 1200;
   bool get isMobile => !isTablet && !isDesktop;
+
+  double get maxWidthForContent {
+    if (isDesktop) {
+      return 800.0; // Set desired max width for desktop here
+    }
+    return double.infinity;
+  }
 }
 
 extension NetworkExtensions on BuildContext {

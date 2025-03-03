@@ -3,12 +3,14 @@ import 'package:lightseed/src/logic/auth_logic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart';
+import '../services/timeline_service.dart';
 
 class AccountState extends ChangeNotifier {
   AppUser? _user;
   bool _isInitialized = false;
   static const String _userNameKey = 'user_name';
   static const String _userIdKey = 'user_id';
+  final TimelineService _timelineService = TimelineService();
 
   AppUser? get user => _user;
 
@@ -73,6 +75,7 @@ class AccountState extends ChangeNotifier {
 
   Future<void> signOut(BuildContext context) async {
     await _clearCache();  // Clear cache before signing out
+    await _timelineService.clearTimeline(_user?.id ?? '');
     await AuthLogic.signOut();
   }
 
@@ -100,8 +103,9 @@ class AccountState extends ChangeNotifier {
 
   Future<void> _clearCache() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userNameKey);
-    await prefs.remove(_userIdKey);
+/*     await prefs.remove(_userNameKey);
+    await prefs.remove(_userIdKey); */
+    await prefs.clear(); 
   }
 
   // Update clear method to also clear cache

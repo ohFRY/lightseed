@@ -7,16 +7,41 @@ import 'package:lightseed/src/shared/extensions.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 
+/// A widget that monitors and provides network connectivity status throughout the app.
+/// 
+/// This stateful widget wraps child widgets and provides them with information about
+/// the current network connectivity status. It combines device connectivity status
+/// (from ConnectivityService) and server availability (from SupabaseService) to
+/// determine if the app is truly online.
+/// 
+/// When network connectivity is restored, it automatically triggers data synchronization.
+/// 
+/// Usage:
+/// ```dart
+/// NetworkStatus(
+///   child: MyApp(),
+/// )
+/// ```
 class NetworkStatus extends StatefulWidget {
+  /// The widget below this widget in the tree.
   final Widget child;
-  const NetworkStatus({super.key, required this.child}); // Use super parameters
+  
+  /// Creates a NetworkStatus widget.
+  const NetworkStatus({super.key, required this.child});
 
+  /// Finds and returns the NetworkStatusState from the closest NetworkStatus instance
+  /// that encloses the given context.
+  /// 
+  /// Returns null if no NetworkStatus ancestor exists.
   static NetworkStatusState? of(BuildContext context) {
     return context.findAncestorStateOfType<NetworkStatusState>();
   }
 
-  // to use when we want to force the network status check
-  // e.g. when the user wants to access to a screen that requires a connection with the server
+  /// Forces an immediate check of the network status.
+  /// 
+  /// Useful when the user wants to access features that require connectivity.
+  /// 
+  /// @param context The BuildContext used to find the NetworkStatus instance.
   static Future<void> checkStatus(BuildContext context) async {
     final state = NetworkStatus.of(context);
     if (state != null) {
@@ -28,15 +53,38 @@ class NetworkStatus extends StatefulWidget {
   NetworkStatusState createState() => NetworkStatusState();
 }
 
+/// The state for the NetworkStatus widget.
+/// 
+/// This class manages the network status monitoring, combining device connectivity
+/// and server availability into a unified network status. It also handles
+/// triggering synchronization when the network is restored.
 class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserver {
+  /// Service for synchronizing timeline data when connectivity is restored.
   final _timelineSyncService = TimelineSyncService();
+  
+  /// Service for monitoring device connectivity (WiFi/cellular).
   final _connectivityService = ConnectivityService();
+  
+  /// Service for checking Supabase server availability.
   final _supabaseService = SupabaseService();
+  
+  /// Flag to track if the connection was previously offline.
+  /// Used to determine when to trigger sync actions.
   bool _wasOffline = true;
+  
+  /// Current online status - true if both device and server are reachable.
   bool _isOnline = false;
+  
+  /// Stream that emits network status updates.
   late Stream<bool> _networkStatusStream;
+  
+  /// Current online status.
   bool get isOnline => _isOnline;
-  Stream<bool> get networkStatusStream => _networkStatusStream;  // Add this getter
+  
+  /// Stream of network status updates.
+  Stream<bool> get networkStatusStream => _networkStatusStream;
+  
+  /// Controller for manual network status checks.
   final StreamController<bool> _manualUpdateController = StreamController<bool>.broadcast();
 
   @override
@@ -47,6 +95,10 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     _performInitialCheck();
   }
 
+  /// Performs an initial check of server health without blocking the UI.
+  /// 
+  /// This provides an early indication of connectivity before the streams
+  /// are fully established.
   Future<void> _performInitialCheck() async {
     // Don't block the UI
     unawaited(Future(() async {
@@ -62,6 +114,11 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     }));
   }
 
+  /// Sets up the reactive streams that monitor network connectivity.
+  /// 
+  /// Combines device connectivity status and server availability into a single
+  /// network status stream. Also updates the NetworkStatusProvider singleton
+  /// and triggers sync when connectivity is restored.
   void _setupStreams() {
     debugPrint('🔄 NetworkStatus: setting up streams');
     
@@ -79,6 +136,9 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
       (bool deviceOnline, bool serverOnline) {
         final status = deviceOnline && serverOnline;
         debugPrint('🔄 Network status update - Device: $deviceOnline, Server: $serverOnline, Combined: $status');
+        
+        // Update the provider for non-widget access
+        NetworkStatusProvider.instance.updateStatus(status);
         
         if (status && _wasOffline) {
           _triggerSync();
@@ -100,6 +160,10 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     });
   }
 
+  /// Triggers data synchronization when network connectivity is restored.
+  /// 
+  /// This ensures that any offline changes are synchronized with the server
+  /// as soon as connectivity becomes available.
   Future<void> _triggerSync() async {
     final userId = AuthLogic.getValidUserId();
     if (userId != null) {
@@ -108,6 +172,10 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
     }
   }
 
+  /// Performs a manual check of server health.
+  /// 
+  /// This can be called by other parts of the app to force a connectivity check.
+  /// Results are emitted through the _manualUpdateController stream.
   Future<void> checkStatus() async {
     // Don't block navigation
     unawaited(Future(() async {
@@ -130,5 +198,41 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
   Widget build(BuildContext context) {
     debugPrint('🔄 NetworkStatus: build called, isOnline: $_isOnline');
     return widget.child;
+  }
+}
+
+/// A singleton provider for accessing network status outside of the widget tree.
+/// 
+/// This class provides a way for services and other non-UI components to
+/// check if the app currently has network connectivity, without needing a BuildContext.
+/// 
+/// Usage example:
+/// ```dart
+/// if (NetworkStatusProvider.instance.isOnline) {
+///   // Perform network operation
+/// }
+/// ```
+class NetworkStatusProvider {
+  /// Singleton instance
+  static final NetworkStatusProvider _instance = NetworkStatusProvider._internal();
+  
+  /// Access to the singleton instance
+  static NetworkStatusProvider get instance => _instance;
+  
+  /// Private constructor
+  NetworkStatusProvider._internal();
+  
+  /// Current online status
+  bool _isOnline = false;
+  
+  /// Whether the app currently has network connectivity
+  bool get isOnline => _isOnline;
+  
+  /// Updates the current network status
+  /// 
+  /// This is called by NetworkStatusState when network status changes.
+  /// @param status The new network status
+  void updateStatus(bool status) {
+    _isOnline = status;
   }
 }

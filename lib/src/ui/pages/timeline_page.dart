@@ -16,10 +16,6 @@ class TimelinePage extends StatelessWidget {
               ? const Center(child: Text('Your timeline is empty.'))
               : ListView(
                   children: [
-                    const ListTile(
-                      title: Text('Your Timeline', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
                     for (var item in timelineState.items)
                       ListTile(
                         title: Text(item.content),

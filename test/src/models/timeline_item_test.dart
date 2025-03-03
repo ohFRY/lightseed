@@ -69,8 +69,8 @@ void main() {
 
       test('should handle different TimelineItemTypes', () {
         final types = {
-          'journalEntry': TimelineItemType.journalEntry,
-          'emotionLog': TimelineItemType.emotionLog,
+          'journalEntry': TimelineItemType.journal_entry,
+          'emotionLog': TimelineItemType.emotion_log,
         };
 
         types.forEach((jsonValue, expectedType) {
