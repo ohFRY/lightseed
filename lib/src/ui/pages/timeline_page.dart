@@ -29,19 +29,23 @@ class TimelinePage extends StatelessWidget {
           final Map<String, List<TimelineItem>> groupedItems = {};
           
           for (var item in sortedItems) {
-            final date = _formatDateForGrouping(item.createdAt);
+              final localDate = item.createdAt.toLocal();
+              final dateString = DateFormat('yyyy-MM-dd').format(localDate);
             
-            if (!groupedItems.containsKey(date)) {
-              groupedItems[date] = [];
+            if (!groupedItems.containsKey(dateString)) {
+              groupedItems[dateString] = [];
             }
-            groupedItems[date]!.add(item);
+            groupedItems[dateString]!.add(item);
           }
 
           // Create a list of widgets for each date group
           final List<Widget> groupWidgets = [];
           
           groupedItems.forEach((date, items) {
-            // Add the date header
+            // Parse the date string back to DateTime for formatting
+            final dateTime = DateFormat('yyyy-MM-dd').parse(date);
+            
+            // Add the date header with formatted date
             groupWidgets.add(
               Padding(
                 padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
@@ -67,7 +71,7 @@ class TimelinePage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          date,
+                          _formatDateForGrouping(dateTime), // Use the helper method
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onPrimaryContainer,

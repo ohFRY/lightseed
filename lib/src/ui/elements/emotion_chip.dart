@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EmotionChip extends StatelessWidget {
   final String label;
@@ -26,7 +27,13 @@ class EmotionChip extends StatelessWidget {
       onTap: onTap,
       child: Chip(
         avatar: leading,
-        label: Text(displayLabel),
+        label: Text(
+          displayLabel,
+          style: GoogleFonts.bricolageGrotesque(
+            textStyle: theme.textTheme.bodyMedium,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: selected ? selectedColor : null,
       ),
     );

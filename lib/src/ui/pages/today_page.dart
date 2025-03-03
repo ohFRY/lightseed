@@ -48,11 +48,12 @@ class TodayPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(getTitle(accountState)),
-              toolbarHeight: 100,
               centerTitle: true,
               actions: [
                 IconButton(
                   icon: const Icon(Icons.person),
+                  padding: const EdgeInsets.all(16.0),
+                  tooltip: 'Account',
                   onPressed: () {
                     // Start the check but don't await it
                     NetworkStatus.checkStatus(context);
@@ -74,8 +75,9 @@ class TodayPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      SizedBox(height: 16.0),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
                         child: AnimatedTextCard(
                           text: currentAffirmation.content,
                           icon: isSaved ? Icons.bookmark : Icons.bookmark_outline,
@@ -122,44 +124,47 @@ class TodayPage extends StatelessWidget {
                       ),
                       // Display today's logged emotions here
                       if (todayState.todayEmotions.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Today's Emotions",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            Wrap(
-                              spacing: 8.0,
-                              children: () {
-                                // Get emotion counts
-                                final counts = todayState.getEmotionCounts();
-                                
-                                // Create a set of unique emotion IDs
-                                final uniqueEmotionIds = todayState.todayEmotions
-                                    .map((e) => e.id)
-                                    .toSet();
-                                    
-                                // Map each unique emotion to a chip
-                                return uniqueEmotionIds.map((id) {
-                                  // Find the emotion object for this ID
-                                  final emotion = todayState.todayEmotions
-                                      .firstWhere((e) => e.id == id);
-                                      
-                                  // Get the count for this emotion
-                                  final count = counts[id] ?? 0;
+                      Center(
+                        child: Container(
+                          width: 600, // Set a fixed width to align with the affirmation container
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Today's Emotions",
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Wrap(
+                                spacing: 8.0,
+                                children: () {
+                                  // Get emotion counts
+                                  final counts = todayState.getEmotionCounts();
                                   
-                                  return EmotionChip(
-                                    label: emotion.name,
-                                    count: count,
-                                    // No need for selection or onTap since these are just displays
-                                  );
-                                }).toList();
-                              }(),
-                            ),
-                          ],
+                                  // Create a set of unique emotion IDs
+                                  final uniqueEmotionIds = todayState.todayEmotions
+                                      .map((e) => e.id)
+                                      .toSet();
+                                      
+                                  // Map each unique emotion to a chip
+                                  return uniqueEmotionIds.map((id) {
+                                    // Find the emotion object for this ID
+                                    final emotion = todayState.todayEmotions
+                                        .firstWhere((e) => e.id == id);
+                                        
+                                    // Get the count for this emotion
+                                    final count = counts[id] ?? 0;
+                                    
+                                    return EmotionChip(
+                                      label: emotion.name,
+                                      count: count,
+                                      // No need for selection or onTap since these are just displays
+                                    );
+                                  }).toList();
+                                }(),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

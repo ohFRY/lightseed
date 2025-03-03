@@ -85,15 +85,16 @@ class TimelineItem {
   /// @param emotionIds List of IDs representing the emotions being logged.
   /// @return A new TimelineItem representing an emotion log.
   factory TimelineItem.forEmotionLog(String userId, String notes, List<String> emotionIds) {
+    final now = DateTime.now().toUtc(); // Ensure UTC time
     return TimelineItem(
       id: const Uuid().v4(),
       userId: userId,
       content: notes,
       type: TimelineItemType.emotion_log,
-      createdAt: DateTime.now(),
+      createdAt: now,
       metadata: {
         'emotion_ids': emotionIds,
-        'saved_at': DateTime.now().toIso8601String(),
+        'saved_at': now.toIso8601String(), // Store UTC time
       },
     );
   }
@@ -117,7 +118,7 @@ class TimelineItem {
         (e) => e.toString().split('.').last == typeString,
         orElse: () => throw StateError('Invalid type value: ${json['type']}'),
       ),
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()).toLocal(),
       updatedAt: json['updated_at'] != null 
           ? DateTime.parse(json['updated_at']) 
           : null,
