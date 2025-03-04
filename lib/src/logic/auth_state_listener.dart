@@ -112,7 +112,7 @@ class AuthStateListenerState extends State<AuthStateListener> {
       final basicUser = AppUser(
         id: supabaseUser.id,
         email: supabaseUser.email ?? '',
-        fullName: 'Offline User', // Or get from local storage
+        fullName: '', // Or get from local storage
       );
       Provider.of<AccountState>(context, listen: false).setUser(basicUser);
     }

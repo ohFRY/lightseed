@@ -23,15 +23,18 @@ Future<void> main() async {
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
-  
+
+  final accountState = AccountState();
+  await accountState.fetchUser(); // Ensure the user is fetched before using the state
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => accountState),
         ChangeNotifierProvider(
           create: (_) => TimelineState(AuthLogic.getValidUserId() ?? '')
         ),
-        ChangeNotifierProvider(create: (_) => TodayPageState()),
-        ChangeNotifierProvider(create: (_) => AccountState())
+        ChangeNotifierProvider(create: (_) => TodayPageState(accountState)),
       ],
       child: NetworkStatus(
         child: MyAppWithSplashScreen(),

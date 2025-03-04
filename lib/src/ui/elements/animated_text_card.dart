@@ -37,98 +37,103 @@ class _AnimatedTextCardState extends State<AnimatedTextCard> with AutomaticKeepA
     final style = theme.textTheme.displayMedium;
     final stylelabel = theme.textTheme.bodySmall;
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Stack(
-          children: [
-            Column(
+    return Center(
+      child: SizedBox(
+        width: 600, // Set a fixed width to align with other elements
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Stack(
               children: [
-                if (!isTextVisible)
-                  SizedBox(height: 20)
-                else
-                  FittedBox(
-                    fit: BoxFit.fitWidth,
-                    child: Center(
-                      child: AnimatedTextKit(
-                        animatedTexts: [
-                          FadeInAnimatedText(
-                            "Repeat the following 3 times",
-                            textStyle: stylelabel,
-                          ),
-                        ],
-                        totalRepeatCount: 1,
-                        repeatForever: false,
-                        isRepeatingAnimation: false,
-                      ),
-                    ),
-                  ),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final textSpan = TextSpan(
-                      text: widget.text.toString(),
-                      style: style,
-                    );
-
-                    final textPainter = TextPainter(
-                      text: textSpan,
-                      textDirection: TextDirection.ltr,
-                      maxLines: null,
-                    );
-
-                    textPainter.layout(
-                        maxWidth: (constraints.isMobile
-                                ? constraints.maxWidth
-                                : constraints.maxWidth / 2) -
-                            96.0); // Subtract padding
-
-                    final textHeight = textPainter.size.height;
-
-                    return SizedBox(
-                      height: textHeight + 96,
-                      width: constraints.isMobile
-                          ? constraints.maxWidth
-                          : constraints.maxWidth / 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(48.0),
-                        child: widget.animationPlayed // Use the flag passed from MyMainScreen
-                            ? Text(widget.text.toString(), style: style)
-                            : AnimatedTextKit(
-                                animatedTexts: [
-                                  TyperAnimatedText(widget.text.toString(),
-                                      textStyle: style,
-                                      speed: const Duration(milliseconds: 70)),
-                                ],
-                                displayFullTextOnTap: true,
-                                repeatForever: false,
-                                isRepeatingAnimation: false,
-                                onFinished: () {
-                                  setState(() {
-                                    isTextVisible = true;
-                                  });
-                                  widget.onAnimationFinished(); // Call the callback function
-                                },
-                                key: ValueKey(widget.text),
+                Column(
+                  children: [
+                    if (!isTextVisible)
+                      SizedBox(height: 20)
+                    else
+                      FittedBox(
+                        fit: BoxFit.fitWidth,
+                        child: Center(
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              FadeInAnimatedText(
+                                "Repeat the following 3 times",
+                                textStyle: stylelabel,
                               ),
+                            ],
+                            totalRepeatCount: 1,
+                            repeatForever: false,
+                            isRepeatingAnimation: false,
+                          ),
+                        ),
                       ),
-                    );
-                  },
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final textSpan = TextSpan(
+                          text: widget.text.toString(),
+                          style: style,
+                        );
+
+                        final textPainter = TextPainter(
+                          text: textSpan,
+                          textDirection: TextDirection.ltr,
+                          maxLines: null,
+                        );
+
+                        textPainter.layout(
+                            maxWidth: (constraints.isMobile
+                                    ? constraints.maxWidth
+                                    : constraints.maxWidth / 2) -
+                                96.0); // Subtract padding
+
+                        final textHeight = textPainter.size.height;
+
+                        return SizedBox(
+                          height: textHeight + 96,
+                          width: constraints.isMobile
+                              ? constraints.maxWidth
+                              : constraints.maxWidth / 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(48.0),
+                            child: widget.animationPlayed // Use the flag passed from MyMainScreen
+                                ? Text(widget.text.toString(), style: style)
+                                : AnimatedTextKit(
+                                    animatedTexts: [
+                                      TyperAnimatedText(widget.text.toString(),
+                                          textStyle: style,
+                                          speed: const Duration(milliseconds: 70)),
+                                    ],
+                                    displayFullTextOnTap: true,
+                                    repeatForever: false,
+                                    isRepeatingAnimation: false,
+                                    onFinished: () {
+                                      setState(() {
+                                        isTextVisible = true;
+                                      });
+                                      widget.onAnimationFinished(); // Call the callback function
+                                    },
+                                    key: ValueKey(widget.text),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    onPressed: widget.onIconPressed,
+                    icon: Icon(widget.icon),
+                    tooltip: "Save",
+                  ),
                 ),
               ],
             ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: IconButton(
-                onPressed: widget.onIconPressed,
-                icon: Icon(widget.icon),
-                tooltip: "Save",
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

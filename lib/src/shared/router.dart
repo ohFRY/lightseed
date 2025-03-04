@@ -3,6 +3,7 @@ import 'package:lightseed/src/ui/screens/account_screen.dart';
 import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:lightseed/src/ui/screens/sign_screen.dart';
 import 'package:lightseed/src/ui/screens/splash_screen.dart';
+import 'package:lightseed/src/ui/screens/emotion_log_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppRoutes {
@@ -10,7 +11,8 @@ class AppRoutes {
   static const splash = '/splash';
   static const String signin = '/signin';
   static const String account = '/account';
-  static const String accountSetup = '/account-setup'; // Add new route
+  static const String accountSetup = '/account-setup';
+  static const String emotionLog = '/emotion-log';
 
   static final List<NavigationDestination> destinations = [
     NavigationDestination(
@@ -68,6 +70,12 @@ class AppRoutes {
       case account:  // Add explicit handling for account route
         return MaterialPageRoute(
           builder: (_) => AccountScreen(),
+          fullscreenDialog: true,
+        );
+
+      case emotionLog:  // Add explicit handling for emotion log route
+        return MaterialPageRoute(
+          builder: (_) => const EmotionLogScreen(),
           fullscreenDialog: true,
         );
 
