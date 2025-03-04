@@ -38,7 +38,7 @@ class _AnimatedTextCardState extends State<AnimatedTextCard> with AutomaticKeepA
     final stylelabel = theme.textTheme.bodySmall;
 
     return Center(
-      child: Container(
+      child: SizedBox(
         width: 600, // Set a fixed width to align with other elements
         child: Card(
           shape: RoundedRectangleBorder(

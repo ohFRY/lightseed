@@ -158,6 +158,7 @@ class TodayPage extends StatelessWidget {
                                     return EmotionChip(
                                       label: emotion.name,
                                       count: count,
+                                      emotion: emotion,
                                       // No need for selection or onTap since these are just displays
                                     );
                                   }).toList();
