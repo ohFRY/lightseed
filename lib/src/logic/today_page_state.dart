@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lightseed/main.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/affirmations_service.dart';
 import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
+import 'package:provider/provider.dart';
 import '../models/timeline_item.dart';
 import '../models/emotion.dart';
 import '../services/emotions_service.dart';
@@ -21,6 +23,7 @@ class TodayPageState extends ChangeNotifier {
   Timer? _timer;
   bool _hasError = false;
   bool _isLoading = false;
+  bool _emotionsLoaded = false; // Track if emotions were loaded
 
   bool get hasError => _hasError;
   bool get isLoading => _isLoading;
@@ -29,7 +32,7 @@ class TodayPageState extends ChangeNotifier {
     _initializeAffirmations();
     _startPeriodicUpdate();
     _listenForConnectivityChanges();
-    _loadTodayEmotions();
+    // Don't call _loadTodayEmotions() here
   }
 
   Future<void> _initializeAffirmations() async {
@@ -68,12 +71,16 @@ class TodayPageState extends ChangeNotifier {
     });
   }
 
-  Future<void> _loadTodayEmotions() async {
+  // Modified to only load once or when explicitly requested
+  Future<void> loadTodayEmotions() async {
+    if (_emotionsLoaded) return; // Skip if already loaded
+    
     final userId = accountState.user?.id;
     if (userId == null) return;
 
-    final timelineState = TimelineState(userId);
-    await timelineState.loadTimeline();
+    // Use the existing TimelineState instance from Provider
+    final timelineState = Provider.of<TimelineState>(navigatorKey.currentContext!, listen: false);
+    
     final today = DateTime.now();
     final todayTimelineItems = timelineState.items.where((item) {
       return item.type == TimelineItemType.emotion_log &&
@@ -82,18 +89,33 @@ class TodayPageState extends ChangeNotifier {
           item.createdAt.day == today.day;
     }).toList();
 
-    todayEmotions = [];
-    final processedTimelineItemIds = <String>{};
+    // Process all emotions in a single batch
+    final emotions = <Emotion>[];
+    final futures = <Future<List<Emotion>>>[];
+    
     for (var item in todayTimelineItems) {
-      if (processedTimelineItemIds.contains(item.id)) continue;
-      processedTimelineItemIds.add(item.id);
-
-      debugPrint('Processing timeline item ID: ${item.id}');
-      final emotionLogs = await _emotionsService.fetchEmotionLogsByTimelineItemId(item.id);
-      debugPrint('Emotion logs for timeline item ID ${item.id}: $emotionLogs');
-      todayEmotions.addAll(emotionLogs);
+      // Create futures without awaiting each one
+      futures.add(_emotionsService.fetchEmotionLogsByTimelineItemId(item.id));
     }
+    
+    // Wait for all fetches to complete in parallel
+    final results = await Future.wait(futures);
+    
+    // Combine all results
+    for (var emotionList in results) {
+      emotions.addAll(emotionList);
+    }
+    
+    // Update state once with all emotions
+    todayEmotions = emotions;
+    _emotionsLoaded = true;
     notifyListeners();
+  }
+  
+  // Add a method to force reload emotions (call after adding new emotion logs)
+  Future<void> refreshTodayEmotions() async {
+    _emotionsLoaded = false;
+    await loadTodayEmotions();
   }
 
   @override

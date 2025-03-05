@@ -86,7 +86,9 @@ class EmotionLogScreen extends StatelessWidget {
                     'felt $formattedEmotionNames',
                   );
                   if (!context.mounted) return;
-                  Navigator.of(context).pop();
+                  
+                  // Return true to indicate successful logging
+                  Navigator.of(context).pop(true);
                 },
                 child: const Text('Save'),
               ),
