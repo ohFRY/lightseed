@@ -24,6 +24,7 @@ class TodayPageState extends ChangeNotifier {
   bool _hasError = false;
   bool _isLoading = false;
   bool _emotionsLoaded = false; // Track if emotions were loaded
+  bool _isEmotionsLoading = false; // Track active loading to prevent duplicates
 
   bool get hasError => _hasError;
   bool get isLoading => _isLoading;
@@ -32,7 +33,6 @@ class TodayPageState extends ChangeNotifier {
     _initializeAffirmations();
     _startPeriodicUpdate();
     _listenForConnectivityChanges();
-    // Don't call _loadTodayEmotions() here
   }
 
   Future<void> _initializeAffirmations() async {
@@ -63,57 +63,79 @@ class TodayPageState extends ChangeNotifier {
     });
   }
 
+  // Modify the _listenForConnectivityChanges method
   void _listenForConnectivityChanges() {
     _connectivityService.connectivityStream.listen((isConnected) {
       if (isConnected) {
+        // Only reload affirmations, don't touch emotions
+        // The timeline sync will handle emotions if needed
         _initializeAffirmations();
+        
+        // Don't call loadTodayEmotions() here
       }
     });
   }
 
   // Modified to only load once or when explicitly requested
   Future<void> loadTodayEmotions() async {
-    if (_emotionsLoaded) return; // Skip if already loaded
-    
-    final userId = accountState.user?.id;
-    if (userId == null) return;
-
-    // Use the existing TimelineState instance from Provider
-    final timelineState = Provider.of<TimelineState>(navigatorKey.currentContext!, listen: false);
-    
-    final today = DateTime.now();
-    final todayTimelineItems = timelineState.items.where((item) {
-      return item.type == TimelineItemType.emotion_log &&
-          item.createdAt.year == today.year &&
-          item.createdAt.month == today.month &&
-          item.createdAt.day == today.day;
-    }).toList();
-
-    // Process all emotions in a single batch
-    final emotions = <Emotion>[];
-    final futures = <Future<List<Emotion>>>[];
-    
-    for (var item in todayTimelineItems) {
-      // Create futures without awaiting each one
-      futures.add(_emotionsService.fetchEmotionLogsByTimelineItemId(item.id));
+    // Skip if already loaded or currently loading
+    if (_emotionsLoaded || _isEmotionsLoading) {
+      print('⏩ Skipping emotions reload - already loaded or loading in progress');
+      return;
     }
     
-    // Wait for all fetches to complete in parallel
-    final results = await Future.wait(futures);
+    print('📊 Loading today emotions');
+    _isEmotionsLoading = true;
     
-    // Combine all results
-    for (var emotionList in results) {
-      emotions.addAll(emotionList);
+    try {
+      final userId = accountState.user?.id;
+      if (userId == null) {
+        _isEmotionsLoading = false;
+        return;
+      }
+    
+      // Use the existing TimelineState instance from Provider
+      final timelineState = Provider.of<TimelineState>(navigatorKey.currentContext!, listen: false);
+      
+      final today = DateTime.now();
+      final todayTimelineItems = timelineState.items.where((item) {
+        return item.type == TimelineItemType.emotion_log &&
+            item.createdAt.year == today.year &&
+            item.createdAt.month == today.month &&
+            item.createdAt.day == today.day;
+      }).toList();
+    
+      // Process all emotions in a single batch
+      final emotions = <Emotion>[];
+      final futures = <Future<List<Emotion>>>[];
+      
+      for (var item in todayTimelineItems) {
+        // Create futures without awaiting each one
+        futures.add(_emotionsService.fetchEmotionLogsByTimelineItemId(item.id));
+      }
+      
+      // Wait for all fetches to complete in parallel
+      final results = await Future.wait(futures);
+      
+      // Combine all results
+      for (var emotionList in results) {
+        emotions.addAll(emotionList);
+      }
+      
+      // Update state once with all emotions
+      todayEmotions = emotions;
+      _emotionsLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      print('❌ Error loading today emotions: $e');
+    } finally {
+      _isEmotionsLoading = false;
     }
-    
-    // Update state once with all emotions
-    todayEmotions = emotions;
-    _emotionsLoaded = true;
-    notifyListeners();
   }
   
   // Add a method to force reload emotions (call after adding new emotion logs)
   Future<void> refreshTodayEmotions() async {
+    print('🔄 Explicitly refreshing today emotions'); 
     _emotionsLoaded = false;
     await loadTodayEmotions();
   }

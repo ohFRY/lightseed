@@ -21,7 +21,7 @@ class AppRoutes {
     ),
     NavigationDestination(
       icon: Icon(Icons.today),
-      label: 'Today',
+      label: 'Present',
     ),
     NavigationDestination(
       icon: Icon(Icons.trending_up),

@@ -22,6 +22,22 @@ class MyMainScreen extends StatefulWidget {
 class MyMainScreenState extends State<MyMainScreen> {
   var selectedIndex = 1;
   TodayPageState? _todayPageState;
+/* 
+  @override
+  void initState() {
+    super.initState();
+    
+    // Check if timeline is already populated before triggering refresh
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final timelineState = Provider.of<TimelineState>(context, listen: false);
+        // Only refresh if timeline is empty
+        if (timelineState.items.isEmpty) {
+          handleRefresh(context);
+        }
+      }
+    });
+  } */
 
   @override
   Widget build(BuildContext context) {

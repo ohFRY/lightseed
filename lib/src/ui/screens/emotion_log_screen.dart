@@ -73,6 +73,14 @@ class EmotionLogScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('I\'m feeling...', textAlign: TextAlign.center),
+            // Add this leading parameter to handle the back button
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                // Explicitly return false to indicate no changes were made
+                Navigator.of(context).pop(false);
+              },
+            ),
             actions: [
               TextButton(
                 onPressed: () async {

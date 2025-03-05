@@ -140,8 +140,12 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
         // Update the provider for non-widget access
         NetworkStatusProvider.instance.updateStatus(status);
         
+        // Only trigger sync if we're truly coming back online from being offline
         if (status && _wasOffline) {
-          _triggerSync();
+          // Use a small delay to avoid race conditions with app initialization
+          Future.delayed(Duration(milliseconds: 500), () {
+            _triggerSync();
+          });
         }
         
         _wasOffline = !status;
