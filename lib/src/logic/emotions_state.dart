@@ -39,6 +39,9 @@ class EmotionsState extends ChangeNotifier {
   /// Whether emotions are currently being loaded
   bool get isLoading => _isLoading;
 
+  /// Whether the state has been disposed
+  bool _isDisposed = false;
+
   /// Creates a new EmotionsState instance and initializes emotions data.
   EmotionsState() {
     _initializeEmotions();
@@ -51,20 +54,30 @@ class EmotionsState extends ChangeNotifier {
   /// it attempts to fetch emotions from the database. Sets loading and error
   /// states appropriately during the process.
   Future<void> _initializeEmotions() async {
-    _isLoading = true;
-    notifyListeners();
     try {
-      emotions = await _emotionsService.loadEmotionsFromCache();
-      if (emotions.isEmpty) {
-        await fetchAllEmotions();
+      // Add a mounted/disposed check before any state updates
+      if (_isDisposed) return;
+      
+      _isLoading = true;
+      notifyListeners();
+      try {
+        emotions = await _emotionsService.loadEmotionsFromCache();
+        if (emotions.isEmpty) {
+          await fetchAllEmotions();
+        }
+        _hasError = false;
+      } catch (e) {
+        print('Error initializing emotions: $e');
+        _hasError = true;
+      } finally {
+        _isLoading = false;
+        // Before notifying listeners
+        if (!_isDisposed) {
+          notifyListeners();
+        }
       }
-      _hasError = false;
     } catch (e) {
       print('Error initializing emotions: $e');
-      _hasError = true;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -121,5 +134,18 @@ class EmotionsState extends ChangeNotifier {
     final emotionMap = {for (var e in emotions) e.id: e.name};
     final emotionNames = selectedEmotionIds.map((id) => emotionMap[id]).whereType<String>();
     return emotionNames.join(', ');
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

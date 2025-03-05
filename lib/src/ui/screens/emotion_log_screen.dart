@@ -73,6 +73,14 @@ class EmotionLogScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('I\'m feeling...', textAlign: TextAlign.center),
+            // Add this leading parameter to handle the back button
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                // Explicitly return false to indicate no changes were made
+                Navigator.of(context).pop(false);
+              },
+            ),
             actions: [
               TextButton(
                 onPressed: () async {
@@ -86,7 +94,9 @@ class EmotionLogScreen extends StatelessWidget {
                     'felt $formattedEmotionNames',
                   );
                   if (!context.mounted) return;
-                  Navigator.of(context).pop();
+                  
+                  // Return true to indicate successful logging
+                  Navigator.of(context).pop(true);
                 },
                 child: const Text('Save'),
               ),

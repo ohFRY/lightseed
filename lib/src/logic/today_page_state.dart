@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lightseed/main.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/affirmations_service.dart';
-import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
+import 'package:provider/provider.dart';
 import '../models/timeline_item.dart';
 import '../models/emotion.dart';
 import '../services/emotions_service.dart';
@@ -12,7 +14,6 @@ import 'account_state_screen.dart';
 
 class TodayPageState extends ChangeNotifier {
   final AffirmationsService _affirmationsService = AffirmationsService();
-  final ConnectivityService _connectivityService = ConnectivityService();
   final EmotionsService _emotionsService = EmotionsService();
   final AccountState accountState;
   List<Affirmation> affirmations = [];
@@ -21,15 +22,24 @@ class TodayPageState extends ChangeNotifier {
   Timer? _timer;
   bool _hasError = false;
   bool _isLoading = false;
+  bool _emotionsLoaded = false; // Track if emotions were loaded
+  bool _isEmotionsLoading = false; // Track active loading to prevent duplicates
+  bool _isDisposed = false;
+  StreamSubscription? _networkSubscription;
 
   bool get hasError => _hasError;
   bool get isLoading => _isLoading;
+  bool get emotionsLoaded => _emotionsLoaded;
+
+  set emotionsLoaded(bool value) {
+    _emotionsLoaded = value;
+    debugPrint('Emotion loaded status set to: $value');
+  }
 
   TodayPageState(this.accountState) {
     _initializeAffirmations();
     _startPeriodicUpdate();
     _listenForConnectivityChanges();
-    _loadTodayEmotions();
   }
 
   Future<void> _initializeAffirmations() async {
@@ -60,44 +70,101 @@ class TodayPageState extends ChangeNotifier {
     });
   }
 
+  // Update the _listenForConnectivityChanges method
   void _listenForConnectivityChanges() {
-    _connectivityService.connectivityStream.listen((isConnected) {
-      if (isConnected) {
-        _initializeAffirmations();
-      }
-    });
+    // Cancel any existing subscription first
+    _networkSubscription?.cancel();
+    
+    try {
+      _networkSubscription = NetworkStatusProvider.instance.networkStatusStream.listen((isOnline) {
+        // Skip if disposed
+        if (_isDisposed) return;
+        
+        if (isOnline && !emotionsLoaded) {
+          _initializeAffirmations();
+          loadTodayEmotions();
+        }
+      });
+    } catch (e) {
+      debugPrint('Error setting up network listener in TodayPageState: $e');
+    }
   }
 
-  Future<void> _loadTodayEmotions() async {
-    final userId = accountState.user?.id;
-    if (userId == null) return;
-
-    final timelineState = TimelineState(userId);
-    await timelineState.loadTimeline();
-    final today = DateTime.now();
-    final todayTimelineItems = timelineState.items.where((item) {
-      return item.type == TimelineItemType.emotion_log &&
-          item.createdAt.year == today.year &&
-          item.createdAt.month == today.month &&
-          item.createdAt.day == today.day;
-    }).toList();
-
-    todayEmotions = [];
-    final processedTimelineItemIds = <String>{};
-    for (var item in todayTimelineItems) {
-      if (processedTimelineItemIds.contains(item.id)) continue;
-      processedTimelineItemIds.add(item.id);
-
-      debugPrint('Processing timeline item ID: ${item.id}');
-      final emotionLogs = await _emotionsService.fetchEmotionLogsByTimelineItemId(item.id);
-      debugPrint('Emotion logs for timeline item ID ${item.id}: $emotionLogs');
-      todayEmotions.addAll(emotionLogs);
+  // Modified to only load once or when explicitly requested
+  Future<void> loadTodayEmotions() async {
+    // Skip if already loaded or currently loading
+    if (emotionsLoaded || _isEmotionsLoading) {
+      print('⏩ Skipping emotions reload - already loaded or loading in progress');
+      return;
     }
-    notifyListeners();
+    
+    print('📊 Loading today emotions');
+    _isEmotionsLoading = true;
+    
+    try {
+      final userId = accountState.user?.id;
+      if (userId == null) {
+        _isEmotionsLoading = false;
+        return;
+      }
+    
+      // Use the existing TimelineState instance from Provider
+      final timelineState = Provider.of<TimelineState>(navigatorKey.currentContext!, listen: false);
+      
+      final today = DateTime.now();
+      final todayTimelineItems = timelineState.items.where((item) {
+        return item.type == TimelineItemType.emotion_log &&
+            item.createdAt.year == today.year &&
+            item.createdAt.month == today.month &&
+            item.createdAt.day == today.day;
+      }).toList();
+    
+      // Process all emotions in a single batch
+      final emotions = <Emotion>[];
+      final futures = <Future<List<Emotion>>>[];
+      
+      for (var item in todayTimelineItems) {
+        // Create futures without awaiting each one
+        futures.add(_emotionsService.fetchEmotionLogsByTimelineItemId(item.id));
+      }
+      
+      // Wait for all fetches to complete in parallel
+      final results = await Future.wait(futures);
+      
+      // Combine all results
+      for (var emotionList in results) {
+        emotions.addAll(emotionList);
+      }
+      
+      // Update state once with all emotions
+      todayEmotions = emotions;
+      emotionsLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('❌ Error loading today emotions: $e');
+    } finally {
+      _isEmotionsLoading = false;
+    }
+  }
+  
+  // Add a method to force reload emotions (call after adding new emotion logs)
+  Future<void> refreshTodayEmotions() async {
+    debugPrint('🔄 Explicitly refreshing today emotions'); 
+    emotionsLoaded = false;
+    await loadTodayEmotions();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _networkSubscription?.cancel();
     _timer?.cancel();
     super.dispose();
   }

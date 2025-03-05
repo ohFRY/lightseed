@@ -60,19 +60,28 @@ Future<void> _initializeWebSocket() async {
   Future<bool> _checkInitialConnection() async {
     debugPrint('🔍 Checking initial connection...');
     try {
-      // Use a short timeout to avoid long waits
+      // Use a longer timeout to accommodate network latency
       await Supabase.instance.client
           .from('health_checks')
           .select()
           .limit(1)
           .maybeSingle()
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 8)); // Increased from 5 seconds
       
       debugPrint('✅ Connection check successful');
       return true;
     } catch (e) {
-      debugPrint('❌ Connection check failed: $e');
-      return false;
+      // Only consider it a failure if it's a timeout or network error
+      if (e is TimeoutException || 
+          e.toString().contains('network') || 
+          e.toString().contains('connection')) {
+        debugPrint('❌ Connection check failed: $e');
+        return false;
+      }
+      
+      // For other errors (like authentication), we still reached the server
+      debugPrint('⚠️ Connection check returned error but network is up: $e');
+      return true;
     }
   }
 

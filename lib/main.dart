@@ -43,6 +43,7 @@ Future<void> main() async {
   );
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final supabase = Supabase.instance.client;
 
 class MyAppWithSplashScreen extends StatelessWidget {
@@ -51,6 +52,7 @@ class MyAppWithSplashScreen extends StatelessWidget {
     return AuthStateListener(
       child: MaterialApp(
         title: 'LightSeed',
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: _buildThemeData(context, Brightness.light),
         darkTheme: _buildThemeData(context, Brightness.dark),

@@ -12,9 +12,13 @@ import 'timeline_service.dart';
 /// The sync process uses timestamps in each item's metadata to determine which version
 /// is more recent. Items without timestamps are handled safely to prevent data loss.
 class TimelineSyncService {
-  /// Service for accessing and modifying local timeline items
-  final TimelineService _timelineService = TimelineService();
+  // Add these static variables
+  static DateTime? _lastGlobalSyncTime;
+  static bool _syncInProgress = false;
+  static final _syncDebounceTime = const Duration(seconds: 10);
   
+  final TimelineService _timelineService = TimelineService();
+
   /// Synchronizes timeline items for a specific user.
   ///
   /// This is the main entry point for the sync process. It:
@@ -24,8 +28,23 @@ class TimelineSyncService {
   ///
   /// @param userId The ID of the user whose timeline to synchronize
   Future<void> syncItems(String userId) async {
-    debugPrint('🔄 Starting timeline sync for user: $userId');
+    // Check if sync is in progress or was done recently
+    final now = DateTime.now();
+    if (_syncInProgress) {
+      debugPrint('⏱️ Skipping sync - another sync already in progress');
+      return;
+    }
+    
+    if (_lastGlobalSyncTime != null && 
+        now.difference(_lastGlobalSyncTime!) < _syncDebounceTime) {
+      debugPrint('⏱️ Skipping sync - previous sync too recent (${now.difference(_lastGlobalSyncTime!).inSeconds}s ago)');
+      return;
+    }
+    
     try {
+      _syncInProgress = true;
+      _lastGlobalSyncTime = now;
+      debugPrint('🔄 Starting timeline sync for user: $userId');
       final localItems = await _timelineService.getTimelineItems(userId);
       
       // Add debug info for local items
@@ -58,6 +77,8 @@ class TimelineSyncService {
     } catch (e) {
       debugPrint('❌ Timeline sync failed: $e');
       rethrow;
+    } finally {
+      _syncInProgress = false;
     }
   }
 

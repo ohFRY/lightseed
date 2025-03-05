@@ -14,6 +14,7 @@ class TimelinePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Timeline'),
+        centerTitle: true,
       ),
       body: Consumer<TimelineState>(
         builder: (context, timelineState, child) {

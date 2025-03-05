@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lightseed/src/ui/screens/account_screen.dart';
+import 'package:lightseed/src/ui/screens/loading_screen.dart';
 import 'package:lightseed/src/ui/screens/main_screen.dart';
 import 'package:lightseed/src/ui/screens/sign_screen.dart';
 import 'package:lightseed/src/ui/screens/splash_screen.dart';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String account = '/account';
   static const String accountSetup = '/account-setup';
   static const String emotionLog = '/emotion-log';
+  static const String loading = '/loading';
 
   static final List<NavigationDestination> destinations = [
     NavigationDestination(
@@ -21,7 +23,7 @@ class AppRoutes {
     ),
     NavigationDestination(
       icon: Icon(Icons.today),
-      label: 'Today',
+      label: 'Present',
     ),
     NavigationDestination(
       icon: Icon(Icons.trending_up),
@@ -77,6 +79,11 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => const EmotionLogScreen(),
           fullscreenDialog: true,
+        );
+
+      case AppRoutes.loading:
+        return MaterialPageRoute(
+          builder: (context) => const LoadingScreen(),
         );
 
       default:

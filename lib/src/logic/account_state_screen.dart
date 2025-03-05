@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/main.dart';
 import 'package:lightseed/src/logic/auth_logic.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart';
-import '../services/timeline_service.dart';
 
 class AccountState extends ChangeNotifier {
   AppUser? _user;
   bool _isInitialized = false;
   static const String _userNameKey = 'user_name';
   static const String _userIdKey = 'user_id';
-  final TimelineService _timelineService = TimelineService();
+  
 
   AppUser? get user => _user;
 
@@ -73,10 +74,27 @@ class AccountState extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut(BuildContext context) async {
-    await _clearCache();  // Clear cache before signing out
-    await _timelineService.clearTimeline(_user?.id ?? '');
-    await AuthLogic.signOut();
+  static Future<void> signOut(BuildContext context) async {
+    try {
+      // Reset network providers before sign out to avoid stream errors
+      NetworkStatusProvider.instance.resetAfterSignOut();
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear any cached state
+      await _clearUserState();
+      
+      debugPrint('User signed out successfully!');
+    } catch (e) {
+      debugPrint('Error signing out: $e');
+    }
+  }
+
+  // Add a helper method to clear state
+  static Future<void> _clearUserState() async {
+    // Add code to clear any cached state here
+    // This might include clearing shared preferences, local databases, etc.
   }
 
   Future<void> fetchUser() async {

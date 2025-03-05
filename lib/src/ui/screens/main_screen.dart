@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lightseed/src/logic/account_state_screen.dart';
 import 'package:lightseed/src/shared/extensions.dart';
 import 'package:lightseed/src/ui/screens/offline_screen.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,42 @@ class MyMainScreen extends StatefulWidget {
 
 class MyMainScreenState extends State<MyMainScreen> {
   var selectedIndex = 1;
+  TodayPageState? _todayPageState;
+/* 
+  @override
+  void initState() {
+    super.initState();
+    
+    // Check if timeline is already populated before triggering refresh
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final timelineState = Provider.of<TimelineState>(context, listen: false);
+        // Only refresh if timeline is empty
+        if (timelineState.items.isEmpty) {
+          handleRefresh(context);
+        }
+      }
+    });
+  } */
+
+  @override
+  Widget build(BuildContext context) {
+    // Get the AccountState once at the MainScreen level
+    final accountState = Provider.of<AccountState>(context);
+    // Create TodayPageState only once
+    _todayPageState ??= TodayPageState(accountState);
+    // Create TodayPageState provider at the MainScreen level
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => TodayPageState(Provider.of<AccountState>(context, listen: false)),
+        ),
+      ],
+      child: _buildMainScreenContent(context),
+    );
+  }
+
+
   bool _animationPlayed = false; // Add a flag to track if the animation has played
 
   static Future<void> handleRefresh(BuildContext context) async {
@@ -36,9 +73,12 @@ class MyMainScreenState extends State<MyMainScreen> {
     }
 
     if (!context.mounted) return;
+    final todayPageState = Provider.of<TodayPageState>(context, listen: false);
+    
     await Future.wait([
       Provider.of<TimelineState>(context, listen: false).refreshTimeline(),
-      Provider.of<TodayPageState>(context, listen: false).fetchAllAffirmations(),
+      todayPageState.fetchAllAffirmations(),
+      todayPageState.refreshTodayEmotions(), // Also refresh today's emotions
     ]);
   }
 
@@ -49,8 +89,7 @@ class MyMainScreenState extends State<MyMainScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildMainScreenContent(BuildContext context) {
     Widget page;
     switch (selectedIndex) {
       case 1:
