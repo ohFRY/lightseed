@@ -59,9 +59,23 @@ class _TodayPageState extends State<TodayPage>
         _listenForTimelineItems(timelineState, todayState);
       }
     });
+
+    // Failsafe check in case emotions aren't loaded initially
+    Future.delayed(Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+      
+      final todayState = Provider.of<TodayPageState>(context, listen: false);
+      final timelineState = Provider.of<TimelineState>(context, listen: false);
+      
+      // If timeline has items but emotions are empty, force reload
+      if (timelineState.items.isNotEmpty && todayState.todayEmotions.isEmpty) {
+        debugPrint('🔍 Failsafe: Timeline has items but emotions are empty, forcing reload');
+        todayState.refreshTodayEmotions();
+      }
+    });
   }
 
-  // Modify the _listenForTimelineItems method
+  // Update the _listenForTimelineItems method
 
 void _listenForTimelineItems(TimelineState timelineState, TodayPageState todayState) {
   // Use a local variable to track if we've loaded emotions
@@ -76,11 +90,12 @@ void _listenForTimelineItems(TimelineState timelineState, TodayPageState todaySt
       timelineState.removeListener(listener);
       _timelineListener = null; // Clear the reference
       
-      // Load emotions
+      // Load emotions with longer delay to ensure timeline is fully processed
       if (mounted) {
-        // Add a slight delay to avoid UI jank
-        Future.delayed(Duration(milliseconds: 100), () {
+        Future.delayed(Duration(milliseconds: 500), () {
           if (mounted) {
+            // Force reload by resetting the flag
+            todayState.emotionsLoaded = false;
             todayState.loadTodayEmotions();
           }
         });
@@ -89,11 +104,11 @@ void _listenForTimelineItems(TimelineState timelineState, TodayPageState todaySt
   }
   
   // Store references for cleanup
-  _timelineState = timelineState;
   _timelineListener = listener;
-  
-  // Add the listener
   timelineState.addListener(listener);
+  
+  // Initial check in case items are already loaded
+  listener();
 }
 
   @override

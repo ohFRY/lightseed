@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:lightseed/main.dart';
 import 'package:lightseed/src/models/affirmation.dart';
 import 'package:lightseed/src/services/affirmations_service.dart';
-import 'package:lightseed/src/services/network/connectivity_service.dart';
 import 'package:lightseed/src/logic/timeline_state.dart';
+import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:provider/provider.dart';
 import '../models/timeline_item.dart';
 import '../models/emotion.dart';
@@ -14,7 +14,6 @@ import 'account_state_screen.dart';
 
 class TodayPageState extends ChangeNotifier {
   final AffirmationsService _affirmationsService = AffirmationsService();
-  final ConnectivityService _connectivityService = ConnectivityService();
   final EmotionsService _emotionsService = EmotionsService();
   final AccountState accountState;
   List<Affirmation> affirmations = [];
@@ -25,9 +24,17 @@ class TodayPageState extends ChangeNotifier {
   bool _isLoading = false;
   bool _emotionsLoaded = false; // Track if emotions were loaded
   bool _isEmotionsLoading = false; // Track active loading to prevent duplicates
+  bool _isDisposed = false;
+  StreamSubscription? _networkSubscription;
 
   bool get hasError => _hasError;
   bool get isLoading => _isLoading;
+  bool get emotionsLoaded => _emotionsLoaded;
+
+  set emotionsLoaded(bool value) {
+    _emotionsLoaded = value;
+    debugPrint('Emotion loaded status set to: $value');
+  }
 
   TodayPageState(this.accountState) {
     _initializeAffirmations();
@@ -63,23 +70,30 @@ class TodayPageState extends ChangeNotifier {
     });
   }
 
-  // Modify the _listenForConnectivityChanges method
+  // Update the _listenForConnectivityChanges method
   void _listenForConnectivityChanges() {
-    _connectivityService.connectivityStream.listen((isConnected) {
-      if (isConnected) {
-        // Only reload affirmations, don't touch emotions
-        // The timeline sync will handle emotions if needed
-        _initializeAffirmations();
+    // Cancel any existing subscription first
+    _networkSubscription?.cancel();
+    
+    try {
+      _networkSubscription = NetworkStatusProvider.instance.networkStatusStream.listen((isOnline) {
+        // Skip if disposed
+        if (_isDisposed) return;
         
-        // Don't call loadTodayEmotions() here
-      }
-    });
+        if (isOnline && !emotionsLoaded) {
+          _initializeAffirmations();
+          loadTodayEmotions();
+        }
+      });
+    } catch (e) {
+      debugPrint('Error setting up network listener in TodayPageState: $e');
+    }
   }
 
   // Modified to only load once or when explicitly requested
   Future<void> loadTodayEmotions() async {
     // Skip if already loaded or currently loading
-    if (_emotionsLoaded || _isEmotionsLoading) {
+    if (emotionsLoaded || _isEmotionsLoading) {
       print('⏩ Skipping emotions reload - already loaded or loading in progress');
       return;
     }
@@ -124,10 +138,10 @@ class TodayPageState extends ChangeNotifier {
       
       // Update state once with all emotions
       todayEmotions = emotions;
-      _emotionsLoaded = true;
+      emotionsLoaded = true;
       notifyListeners();
     } catch (e) {
-      print('❌ Error loading today emotions: $e');
+      debugPrint('❌ Error loading today emotions: $e');
     } finally {
       _isEmotionsLoading = false;
     }
@@ -135,13 +149,22 @@ class TodayPageState extends ChangeNotifier {
   
   // Add a method to force reload emotions (call after adding new emotion logs)
   Future<void> refreshTodayEmotions() async {
-    print('🔄 Explicitly refreshing today emotions'); 
-    _emotionsLoaded = false;
+    debugPrint('🔄 Explicitly refreshing today emotions'); 
+    emotionsLoaded = false;
     await loadTodayEmotions();
   }
 
   @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
   void dispose() {
+    _isDisposed = true;
+    _networkSubscription?.cancel();
     _timer?.cancel();
     super.dispose();
   }

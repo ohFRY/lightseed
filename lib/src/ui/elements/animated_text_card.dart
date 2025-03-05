@@ -89,7 +89,7 @@ class _AnimatedTextCardState extends State<AnimatedTextCard> with AutomaticKeepA
                         final textHeight = textPainter.size.height;
 
                         return SizedBox(
-                          height: textHeight,
+                          height: textHeight + 40,
                           width: constraints.isMobile
                               ? constraints.maxWidth
                               : constraints.maxWidth / 2,

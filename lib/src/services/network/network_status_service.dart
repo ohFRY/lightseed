@@ -209,12 +209,26 @@ class NetworkStatusState extends State<NetworkStatus> with WidgetsBindingObserve
 /// 
 /// This class provides a way for services and other non-UI components to
 /// check if the app currently has network connectivity, without needing a BuildContext.
+/// It also implements proper stream management to handle lifecycle events such as
+/// sign-out and sign-in cycles.
+/// 
+/// The class features automatic stream recreation when needed, proper disposal
+/// handling, and error protection to prevent common stream-related crashes.
 /// 
 /// Usage example:
 /// ```dart
 /// if (NetworkStatusProvider.instance.isOnline) {
 ///   // Perform network operation
 /// }
+/// 
+/// // Or listen for changes:
+/// NetworkStatusProvider.instance.networkStatusStream.listen((isOnline) {
+///   if (isOnline) {
+///     // Network restored, update UI or start sync
+///   } else {
+///     // Network lost, show offline indicator
+///   }
+/// });
 /// ```
 class NetworkStatusProvider {
   /// Singleton instance
@@ -229,14 +243,78 @@ class NetworkStatusProvider {
   /// Current online status
   bool _isOnline = false;
   
+  /// Tracks if this provider has been disposed
+  /// Used to prevent operations on a disposed instance
+  bool _isDisposed = false;
+  
+  /// Stream controller for network status updates
+  /// Can be recreated if closed (e.g., after sign-out)
+  StreamController<bool>? _networkStatusController = StreamController<bool>.broadcast();
+  
   /// Whether the app currently has network connectivity
   bool get isOnline => _isOnline;
   
+  /// Stream of network status updates
+  /// 
+  /// This stream automatically recreates itself if it was previously closed,
+  /// making it resilient against sign-out/sign-in cycles and other lifecycle events.
+  /// Listeners can safely subscribe to this stream at any point in the app lifecycle.
+  Stream<bool> get networkStatusStream {
+    // Recreate controller if needed
+    if (_networkStatusController == null || _networkStatusController!.isClosed) {
+      _networkStatusController = StreamController<bool>.broadcast();
+    }
+    return _networkStatusController!.stream;
+  }
+  
   /// Updates the current network status
   /// 
-  /// This is called by NetworkStatusState when network status changes.
-  /// @param status The new network status
+  /// This method is called by NetworkStatusState when the combined device and
+  /// server connectivity status changes. It updates the internal status and
+  /// safely emits the new status through the stream if possible.
+  /// 
+  /// @param status The new network connectivity status
   void updateStatus(bool status) {
     _isOnline = status;
+    
+    // Only push to stream if not disposed and not closed
+    if (!_isDisposed && _networkStatusController != null && !_networkStatusController!.isClosed) {
+      try {
+        _networkStatusController!.add(status);
+      } catch (e) {
+        debugPrint('Error updating network status: $e');
+      }
+    }
+  }
+  
+  /// Resets the stream controller after sign-out
+  /// 
+  /// This method ensures that stream resources are properly managed during
+  /// authentication state changes. It should be called as part of the sign-out
+  /// process to prevent stream closure errors when the user signs back in.
+  /// 
+  /// It closes any existing controller and creates a fresh one, effectively
+  /// clearing any previous subscriptions and preventing "stream closed" errors.
+  void resetAfterSignOut() {
+    // Close existing controller if open
+    if (_networkStatusController != null && !_networkStatusController!.isClosed) {
+      _networkStatusController!.close();
+    }
+    
+    // Create a fresh controller
+    _networkStatusController = StreamController<bool>.broadcast();
+    _isDisposed = false;
+  }
+  
+  /// Releases resources used by this provider
+  /// 
+  /// This method should be called when the application is terminating or when
+  /// this provider is no longer needed. It prevents memory leaks by marking
+  /// the instance as disposed and closing the stream controller.
+  void dispose() {
+    _isDisposed = true;
+    if (_networkStatusController != null && !_networkStatusController!.isClosed) {
+      _networkStatusController!.close();
+    }
   }
 }
