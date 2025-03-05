@@ -13,6 +13,7 @@ class SignScreenState extends State<SignScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isSignUp = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +63,10 @@ class SignScreenState extends State<SignScreen> {
                               SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: isOnline ? () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+                                  
                                   final email = emailController.text;
                                   final password = passwordController.text;
                                   
@@ -78,6 +83,10 @@ class SignScreenState extends State<SignScreen> {
 
                                     if (!context.mounted) return;
                                     
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
+                                    
                                     scaffoldContext.showSnackBar(
                                       response ?? 'Unknown error',
                                       isError: !response!.contains('successful'),
@@ -85,18 +94,28 @@ class SignScreenState extends State<SignScreen> {
 
                                     if (response.contains('successful')) {
                                       if (!mounted) return;
+                                      
                                       if (isSignUp) {
                                         Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.accountSetup);
                                       } else {
-                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.home);
+                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.loading);
                                       }
                                     }
                                   } catch (e) {
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
                                     if (!mounted) return;
                                     scaffoldContext.showSnackBar(e.toString(), isError: true);
                                   }
                                 } : null,
-                                child: Text(isSignUp ? 'Sign Up' : 'Login'),
+                                child: _isLoading 
+                                    ? const SizedBox(
+                                        height: 20, 
+                                        width: 20, 
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0)
+                                      )
+                                    : Text(isSignUp ? 'Sign Up' : 'Login'),
                               ),
                               ElevatedButton(
                                 onPressed: isOnline ? () async {

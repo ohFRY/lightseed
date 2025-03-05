@@ -137,6 +137,13 @@ class EmotionsState extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
   void dispose() {
     _isDisposed = true;
     super.dispose();

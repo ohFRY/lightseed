@@ -50,7 +50,7 @@ class _AnimatedTextCardState extends State<AnimatedTextCard> with AutomaticKeepA
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
+                    SizedBox(
                       height: 25, // Fixed height for both states
                       child: AnimatedCrossFade(
                         duration: const Duration(milliseconds: 300),
