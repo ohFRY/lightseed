@@ -203,10 +203,14 @@ class AuthStateListenerState extends State<AuthStateListener> {
         });
       }
     } else if (event == AuthChangeEvent.signedIn) {
-      // Handle sign in events
       final user = session?.user;
       if (user != null) {
         debugPrint('AuthStateListener: User signed in with ID: ${user.id}');
+        
+        // For sign-in events, DON'T navigate automatically
+        // Let the individual screens (SignScreen, etc.) handle their own navigation
+        // This prevents conflicts between manual navigation and auth listener navigation
+        return;
       }
     }
   }

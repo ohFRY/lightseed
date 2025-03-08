@@ -4,15 +4,31 @@ import 'package:lightseed/src/services/network/network_status_service.dart';
 import 'package:lightseed/src/shared/router.dart';
 import 'package:lightseed/src/ui/elements/snackbar.dart';
 
+/// A screen that handles user authentication flows for both sign-up and sign-in.
+///
+/// This screen provides a unified interface for:
+/// - Creating a new account (sign-up)
+/// - Logging into an existing account (sign-in)
+/// - Social authentication via Google
+///
+/// The screen adapts its UI based on the chosen authentication mode and
+/// the current network connectivity status.
 class SignScreen extends StatefulWidget {
   @override
   SignScreenState createState() => SignScreenState();
 }
 
 class SignScreenState extends State<SignScreen> {
+  /// Controller for the email input field.
   final TextEditingController emailController = TextEditingController();
+  
+  /// Controller for the password input field.
   final TextEditingController passwordController = TextEditingController();
+  
+  /// Determines if the screen is in sign-up mode (true) or sign-in mode (false).
   bool isSignUp = true;
+  
+  /// Tracks the loading state during authentication operations.
   bool _isLoading = false;
 
   @override
@@ -87,18 +103,24 @@ class SignScreenState extends State<SignScreen> {
                                       _isLoading = false;
                                     });
                                     
-                                    scaffoldContext.showSnackBar(
-                                      response ?? 'Unknown error',
-                                      isError: !response!.contains('successful'),
-                                    );
+                                    // Only show snackbar for errors
+                                    if (!response!.contains('successful')) {
+                                      scaffoldContext.showSnackBar(
+                                        response,
+                                        isError: true,
+                                      );
+                                    }
 
                                     if (response.contains('successful')) {
                                       if (!mounted) return;
                                       
                                       if (isSignUp) {
-                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.accountSetup);
+                                        Navigator.of(context).pushNamedAndRemoveUntil(
+                                          AppRoutes.accountSetup,
+                                          (route) => false, // Remove all previous routes
+                                        );
                                       } else {
-                                        Navigator.pushReplacementNamed(scaffoldContext, AppRoutes.loading);
+                                        Navigator.pushReplacementNamed(context, AppRoutes.loading);
                                       }
                                     }
                                   } catch (e) {

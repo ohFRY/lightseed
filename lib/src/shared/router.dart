@@ -32,7 +32,16 @@ class AppRoutes {
   ];
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    print('onGenerateRoute called with: ${settings.name}');
+    debugPrint('onGenerateRoute called with: ${settings.name}');
+    debugPrint('Stack trace at route generation: ${StackTrace.current}');
+
+    // Special case handling for account setup after signup
+    if (settings.name == accountSetup) {
+      return MaterialPageRoute(
+        builder: (_) => AccountScreen(isFromSignUp: true),
+        fullscreenDialog: true,
+      );
+    }
 
     // Authentication guard (simplified)
     final session = Supabase.instance.client.auth.currentSession;
@@ -63,19 +72,14 @@ class AppRoutes {
           maintainState: false,
         );
         
-      case accountSetup:
-        return MaterialPageRoute(
-          builder: (_) => AccountScreen(isFromSignUp: true),
-          fullscreenDialog: true,
-        );
-
-      case account:  // Add explicit handling for account route
+      // account route can stay in the switch statement
+      case account:
         return MaterialPageRoute(
           builder: (_) => AccountScreen(),
           fullscreenDialog: true,
         );
 
-      case emotionLog:  // Add explicit handling for emotion log route
+      case emotionLog:
         return MaterialPageRoute(
           builder: (_) => const EmotionLogScreen(),
           fullscreenDialog: true,
